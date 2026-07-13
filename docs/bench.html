@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>rvLLM benchmarks</title>
+  <style>
+    :root{--bg:#070a08;--panel:#0d120f;--ink:#e6f2e9;--muted:#91a397;--line:#263229;--hot:#91ffad;--cold:#99b7ff}
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(circle at 75% 0,#16251a 0,transparent 34rem),var(--bg);color:var(--ink);font:15px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}
+    main{width:min(1080px,calc(100% - 2rem));margin:auto;padding:4rem 0 5rem}
+    header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2rem;align-items:end;border-bottom:1px solid var(--line);padding-bottom:2rem}
+    .stamp{color:var(--hot);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase}
+    h1,h2,p{margin-top:0}h1{max-width:760px;margin:.65rem 0 .8rem;font:700 clamp(3.4rem,9vw,7.8rem)/.82 Iowan Old Style,Baskerville,serif;letter-spacing:-.065em}
+    .lede{max-width:650px;margin:0;color:var(--muted);font-size:1rem}
+    nav{display:flex;gap:1rem;white-space:nowrap}a{color:var(--ink);text-underline-offset:.25em}a:hover{color:var(--hot)}
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin:2rem 0;background:var(--line);border:1px solid var(--line)}
+    .card{background:var(--panel);padding:1.4rem}.card b{display:block;color:var(--hot);font-size:clamp(1.8rem,5vw,3.4rem);letter-spacing:-.06em}.card span{color:var(--muted);font-size:.75rem}
+    section{margin-top:3.5rem}h2{font:700 2rem/1 Iowan Old Style,Baskerville,serif;letter-spacing:-.025em}.note{color:var(--muted);max-width:850px}
+    .table-wrap{overflow-x:auto;border:1px solid var(--line);background:rgba(13,18,15,.8)}
+    table{width:100%;min-width:660px;border-collapse:collapse;font-variant-numeric:tabular-nums}th,td{padding:.72rem .85rem;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}th{color:var(--muted);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase}tbody tr:last-child td{border-bottom:0}.best{color:var(--hot)}
+    .method{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}.method div{background:var(--panel);padding:1rem}.method b{display:block;margin-bottom:.35rem;color:var(--cold);font-size:.74rem;text-transform:uppercase;letter-spacing:.08em}.method p{margin:0;color:var(--muted);font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+    footer{margin-top:3.5rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.76rem}
+    @media(max-width:760px){main{padding-top:2rem}header{grid-template-columns:1fr}nav{white-space:normal}.cards,.method{grid-template-columns:1fr}h1{font-size:4rem}}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <div class="stamp">rvLLM / measured snapshot / 2026-06</div>
+      <h1>Gemma 4, measured.</h1>
+      <p class="lede">Project-reported TPU v6e-4 runs. H100 is being remeasured with the corrected, receipt-producing harness.</p>
+    </div>
+    <nav><a href="https://github.com/solidsf-inc/rvLLM">GitHub</a><a href="arch.md">Architecture</a></nav>
+  </header>
+
+  <div class="cards" aria-label="Peak throughput">
+    <div class="card"><b>16,794</b><span>E4B TPU tok/s · B=1024</span></div>
+    <div class="card"><b>9,600</b><span>31B TPU tok/s · B=768</span></div>
+    <div class="card"><b>Remeasuring</b><span>31B rvLLM H100</span></div>
+  </div>
+
+  <section>
+    <h2>TPU v6e-4</h2>
+    <p class="note">Gemma 4, int8 weights, bf16 activations and KV cache, configured maximum context 2,048. Throughput is aggregate across the batch.</p>
+    <div class="table-wrap"><table aria-label="TPU summary">
+      <thead><tr><th>Metric</th><th>E4B (4B)</th><th>26B-A4B</th><th>31B</th></tr></thead>
+      <tbody>
+        <tr><td>Perplexity</td><td class="best">5.87</td><td>90.21</td><td>24.76</td></tr>
+        <tr><td>B=1 tok/s</td><td class="best">78.3</td><td>52.9</td><td>44.2</td></tr>
+        <tr><td>Cached TTFT</td><td class="best">25.9 ms</td><td>35.3 ms</td><td>73.3 ms</td></tr>
+        <tr><td>Peak tok/s</td><td class="best">16,794</td><td>14,899</td><td>9,600</td></tr>
+        <tr><td>Peak batch</td><td>1,024</td><td>768</td><td>768</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>TPU batch sweep</h2>
+    <div class="table-wrap"><table aria-label="TPU batch throughput">
+      <thead><tr><th>Batch</th><th>E4B tok/s</th><th>26B-A4B tok/s</th><th>31B tok/s</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>78</td><td>53</td><td>44</td></tr>
+        <tr><td>8</td><td>542</td><td>390</td><td>318</td></tr>
+        <tr><td>64</td><td>3,661</td><td>2,662</td><td>2,112</td></tr>
+        <tr><td>128</td><td>6,298</td><td>4,915</td><td>3,853</td></tr>
+        <tr><td>256</td><td>10,214</td><td>8,192</td><td>6,246</td></tr>
+        <tr><td>512</td><td>13,773</td><td>12,390</td><td>8,550</td></tr>
+        <tr><td>768</td><td>15,514</td><td class="best">14,899</td><td class="best">9,600</td></tr>
+        <tr><td>1,024</td><td class="best">16,794</td><td>—</td><td>—</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>H100, 31B</h2>
+    <p class="note">The April 2026 rows were removed after revalidation found invalid KV-page and block-table geometry in that benchmark harness. Corrected H100 results will include exact source, model, kernel, environment, geometry, parity, and timing receipts.</p>
+  </section>
+
+  <section>
+    <h2>Method limits</h2>
+    <div class="method">
+      <div><b>Timing</b><p>TPU cached runs discarded XLA compilation and synchronized with block_until_ready().</p></div>
+      <div><b>Perplexity</b><p>The TPU values use one 86-token passage with BOS; they are not corpus-scale evaluations.</p></div>
+      <div><b>Provenance</b><p>This source snapshot does not include raw run receipts or immutable model revisions. New results must include both.</p></div>
+    </div>
+  </section>
+
+  <footer>Historical measurement snapshot. Hardware pricing and projections are intentionally omitted.</footer>
+</main>
+</body>
+</html>

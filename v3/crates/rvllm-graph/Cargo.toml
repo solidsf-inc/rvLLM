@@ -1,0 +1,23 @@
+[package]
+name = "rvllm-graph"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+# rvllm-graph: per-bucket graph pool, pre-captured at engine init.
+# No lazy warmup capture. See v3/specs/14-graph.md.
+
+[features]
+default = []
+cuda = ["rvllm-mem/cuda", "rvllm-metadata/cuda", "dep:cudarc"]
+
+[dependencies]
+rvllm-core = { workspace = true }
+rvllm-mem = { workspace = true }
+rvllm-metadata = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+sha2 = "0.10"
+cudarc = { version = "0.19", features = ["driver", "cuda-version-from-build-system"], optional = true }

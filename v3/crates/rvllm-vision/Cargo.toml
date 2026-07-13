@@ -1,0 +1,34 @@
+[package]
+name = "rvllm-vision"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Gemma 4 vision tower for rvLLM"
+
+[lib]
+path = "src/lib.rs"
+
+[features]
+default = ["cpu"]
+cpu     = []
+cuda    = ["candle-core/cuda", "candle-nn/cuda"]
+metal   = ["candle-core/metal", "candle-nn/metal"]
+
+[dependencies]
+anyhow      = "=1.0.103"
+candle-core = { version = "=0.10.2", default-features = false }
+candle-nn   = { version = "=0.10.2", default-features = false }
+serde       = { workspace = true }
+serde_json  = { workspace = true }
+image       = { version = "=0.25.10", default-features = false, features = ["jpeg", "png", "webp"] }
+safetensors = "=0.7.0"
+thiserror   = { workspace = true }
+
+[package.metadata.rvllm.provenance]
+upstream = "https://github.com/huggingface/transformers"
+revision = "10555512868d663ee1ff627e4f5c5c260114235b"
+license = "Apache-2.0"
+notice = "../../../LICENSES/Apache-2.0-transformers"

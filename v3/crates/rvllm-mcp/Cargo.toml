@@ -1,0 +1,22 @@
+[package]
+name = "rvllm-mcp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+# Stdio MCP bridge to an rvLLM OpenAI-compatible endpoint. Plain HTTP is
+# restricted to loopback; remote endpoints require HTTPS. RVLLM_API_KEY is
+# sent as a bearer token when configured.
+
+[[bin]]
+name = "rvllm-mcp"
+path = "src/main.rs"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }

@@ -1,0 +1,168 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_TOOLCHAIN: 1.95.0
+
+jobs:
+  rust:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: v3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal --component clippy,rustfmt
+      - name: Format
+        run: cargo +"$RUST_TOOLCHAIN" fmt --all --check
+      - name: Check
+        run: cargo +"$RUST_TOOLCHAIN" check --workspace --all-targets --locked
+      - name: Test
+        run: cargo +"$RUST_TOOLCHAIN" test --workspace --locked
+      - name: Dependency inventory
+        run: |
+          cargo +"$RUST_TOOLCHAIN" metadata --locked --format-version 1 > /tmp/rvllm-cargo-metadata.json
+          test -s /tmp/rvllm-cargo-metadata.json
+          cargo +"$RUST_TOOLCHAIN" install cargo-cyclonedx --version 0.5.9 --locked
+          cargo +"$RUST_TOOLCHAIN" cyclonedx --format json --all
+          find . -name bom.json -type f -size +0c -print -quit | grep -q .
+      - name: Advisory and license policy
+        run: |
+          cargo +"$RUST_TOOLCHAIN" install cargo-audit --version 0.22.2 --locked
+          cargo +"$RUST_TOOLCHAIN" install cargo-deny --version 0.20.2 --locked
+          cargo +"$RUST_TOOLCHAIN" audit --deny warnings --ignore RUSTSEC-2024-0436
+          cargo +"$RUST_TOOLCHAIN" deny check advisories bans licenses sources
+
+  cuda-source:
+    runs-on: ubuntu-24.04
+    env:
+      CUDARC_CUDA_VERSION: "12080"
+    defaults:
+      run:
+        working-directory: v3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
+      - name: Compile CUDA server and runtime paths
+        run: cargo +"$RUST_TOOLCHAIN" check --locked --all-targets -p rvllm-serve --features cuda,cublaslt
+      - name: Compile CUDA benchmark paths
+        run: cargo +"$RUST_TOOLCHAIN" check --locked --all-targets -p rvllm-bench --features cuda
+      - name: Compile vision integration
+        run: cargo +"$RUST_TOOLCHAIN" check --locked --all-targets -p rvllm-serve --features cuda,cublaslt,vision
+
+  cuda-release-artifacts:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [sm90, sm121]
+    container:
+      image: nvidia/cuda:13.0.1-devel-ubuntu24.04@sha256:7d2f6a8c2071d911524f95061a0db363e24d27aa51ec831fcccf9e76eb72bc92
+    steps:
+      - name: Install source and ABI tools
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git python3 binutils perl ca-certificates
+          rm -rf /var/lib/apt/lists/*
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - name: Fetch pinned FlashAttention source
+        if: matrix.target == 'sm90'
+        run: |
+          git init /tmp/flash-attention
+          git -C /tmp/flash-attention remote add origin https://github.com/Dao-AILab/flash-attention.git
+          git -C /tmp/flash-attention fetch --depth=1 origin 1233b73b6c95340c65c9edfe929611838354fc6e
+          git -C /tmp/flash-attention checkout --detach FETCH_HEAD
+      - name: Compile and link every release artifact
+        env:
+          JOBS: "2"
+        run: |
+          if [ "${{ matrix.target }}" = sm90 ]; then
+            ./kernels/ci_compile_release_cuda.sh sm90 /tmp/flash-attention/hopper
+          else
+            ./kernels/ci_compile_release_cuda.sh sm121
+          fi
+
+  metal-source:
+    runs-on: macos-14
+    defaults:
+      run:
+        working-directory: v3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Install pinned Rust toolchain
+        run: |
+          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
+          rustup +"$RUST_TOOLCHAIN" target add aarch64-apple-darwin
+      - name: Compile Apple Silicon server and runtime paths
+        run: cargo +"$RUST_TOOLCHAIN" check --locked --target aarch64-apple-darwin --all-targets -p rvllm-serve --features metal
+      - name: Compile Apple Silicon benchmark path
+        run: cargo +"$RUST_TOOLCHAIN" check --locked --target aarch64-apple-darwin --all-targets -p rvllm-bench --features metal
+      - name: Compile Metal vision path
+        run: cargo +"$RUST_TOOLCHAIN" check --locked --target aarch64-apple-darwin --all-targets -p rvllm-vision --no-default-features --features metal
+
+  release-surface:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Reject private release markers
+        run: |
+          if rg -n '/Users/[^/]+/|/root/\.ssh|StrictHostKeyChecking=no|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|hf_[A-Za-z0-9]{20,}' . \
+            --glob '!cutlass/**' \
+            --glob '!v3/target/**' \
+            --glob '!.github/workflows/ci.yml' \
+            --glob '!scripts/validate-local.sh'; then
+            exit 1
+          fi
+      - name: Verify attribution records
+        run: |
+          rg -q '31c13eb4587d3e4a5204870c98b70c05a1e5c943' LICENSES/Apache-2.0-mlx
+          rg -q '10555512868d663ee1ff627e4f5c5c260114235b' LICENSES/Apache-2.0-transformers
+          ! rg -n 'SOURCE_PATH|MODIFICATIONS_LIST' LICENSES
+      - name: Python syntax
+        run: |
+          python3 -m py_compile \
+            deploy/benchmark_client.py \
+            fp8_precision_check.py \
+            scripts/gemma4_hf_probes.py \
+            scripts/hf_attn_probes.py \
+            scripts/hf_dump_intermediates.py \
+            scripts/generate_readme_table.py \
+            scripts/test_fp8_encode.py \
+            tests/api_compat/test_openai_client.py
+
+  chat-client:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: chat-client
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
+      - run: cargo +"$RUST_TOOLCHAIN" check --locked

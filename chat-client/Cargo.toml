@@ -1,0 +1,22 @@
+[package]
+name = "chat-client"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85"
+license = "Apache-2.0"
+repository = "https://github.com/solidsf-inc/rvLLM"
+publish = false
+
+[dependencies]
+eframe = { version = "0.31", default-features = false, features = ["default_fonts", "glow", "wayland", "x11"] }
+egui = "0.31"
+futures-util = "0.3"
+reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "time"] }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1

@@ -1,0 +1,20 @@
+ARG RUST_IMAGE=rust:1.95.0-bookworm@sha256:6258907abe69656e41cd992e0b705cdcfabcbbe3db374f92ed2d47121282d4a1
+ARG CUDA_DEVEL_IMAGE=nvidia/cuda:13.0.1-devel-ubuntu24.04@sha256:7d2f6a8c2071d911524f95061a0db363e24d27aa51ec831fcccf9e76eb72bc92
+
+FROM ${RUST_IMAGE} AS rust-toolchain
+
+FROM ${CUDA_DEVEL_IMAGE}
+COPY --from=rust-toolchain /usr/local/cargo /usr/local/cargo
+COPY --from=rust-toolchain /usr/local/rustup /usr/local/rustup
+ENV PATH=/usr/local/cargo/bin:${PATH}
+ENV RUSTUP_HOME=/usr/local/rustup
+ENV CARGO_HOME=/usr/local/cargo
+ENV CUTLASS_DIR=/opt/cutlass
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        build-essential ca-certificates git libssl-dev pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /src
+COPY cutlass /opt/cutlass
+COPY v3 v3
+RUN cargo check --manifest-path v3/Cargo.toml --workspace --all-targets --locked

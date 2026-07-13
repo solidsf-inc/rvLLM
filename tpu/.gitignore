@@ -1,0 +1,4 @@
+out/*.mlir
+__pycache__/
+*.egg-info/
+.venv/

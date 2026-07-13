@@ -1,0 +1,22 @@
+[package]
+name = "rvllm-fused"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+# rvllm-fused: validated Rust launch descriptors for the CUDA artifacts
+# used by the runtime, plus fallible CPU references for their mathematical
+# primitives and Gemma 4 parity vectors. See v3/specs/12-fused.md.
+
+[features]
+default = []
+cuda = ["rvllm-kernels/cuda", "rvllm-mem/cuda", "dep:cudarc"]
+
+[dependencies]
+rvllm-core = { workspace = true }
+rvllm-mem = { workspace = true }
+rvllm-kernels = { workspace = true }
+half = { workspace = true }
+cudarc = { version = "0.19", features = ["driver", "cuda-version-from-build-system"], optional = true }

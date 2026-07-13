@@ -1,0 +1,21 @@
+[package]
+name = "rvllm-sampling"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+# rvllm-sampling: GPU-side greedy (+ optional top-k/p).
+# Double-buffered pinned DtoH of argmax token IDs via a type-state
+# DtoHTicket. See v3/specs/13-sampling.md.
+
+[features]
+default = []
+cuda = ["rvllm-mem/cuda", "rvllm-fused/cuda", "rvllm-kernels/cuda"]
+
+[dependencies]
+rvllm-core = { workspace = true }
+rvllm-mem = { workspace = true }
+rvllm-fused = { workspace = true }
+rvllm-kernels = { workspace = true }

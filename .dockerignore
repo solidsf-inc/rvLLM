@@ -1,0 +1,17 @@
+.git
+**/.git
+target
+**/target
+.env
+.env.*
+!.env.example
+models
+**/*.safetensors
+**/*.gguf
+artifacts
+results
+captures
+*.log
+*.nsys-rep
+*.sqlite
+.DS_Store

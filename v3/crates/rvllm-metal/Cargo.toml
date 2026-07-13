@@ -1,0 +1,24 @@
+[package]
+name = "rvllm-metal"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[features]
+default = []
+metal = []
+
+[target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
+metal = "0.27"
+
+[dependencies]
+thiserror  = { workspace = true }
+half       = { workspace = true }
+tracing    = { workspace = true }
+rvllm-core = { path = "../rvllm-core", version = "=0.3.0" }

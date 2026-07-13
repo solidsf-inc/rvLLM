@@ -1,0 +1,41 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage[table]{xcolor}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\bfseries,
+  commentstyle=\itshape,
+  stringstyle=\ttfamily,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{gray!40},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  xleftmargin=2em,
+  framexleftmargin=1.5em,
+  columns=flexible,
+  showstringspaces=false,
+}
+\usepackage[colorlinks=false,pdfborder={0 0 0}]{hyperref}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{titlesec}
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+\newcommand{\thead}[1]{\textbf{#1}}
+\definecolor{HeaderBlue}{HTML}{CCCCCC}
+
+\begin{document}
+\input{rvllm-body}
+\end{document}

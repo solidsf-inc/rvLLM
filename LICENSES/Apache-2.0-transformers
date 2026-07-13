@@ -1,0 +1,22 @@
+Portions of `v3/crates/rvllm-vision/src/` are Rust ports of Hugging Face
+Transformers revision 10555512868d663ee1ff627e4f5c5c260114235b:
+
+  src/transformers/models/gemma4/modular_gemma4.py
+    -> chat.rs, embedder.rs, lib.rs, loader.rs, model.rs
+  src/transformers/models/gemma4/configuration_gemma4.py
+    -> config.rs
+  src/transformers/models/gemma4/image_processing_gemma4.py
+    -> preprocess.rs
+  src/transformers/models/gemma3n/modeling_gemma3n.py
+    -> embedder.rs, model.rs
+  src/transformers/masking_utils.py
+    -> model.rs
+
+The ports replace PyTorch modules with Rust/Candle inference code, remove
+training and wrapper APIs, adapt weight-key lookup, inline the required masking
+logic, and implement flat patch/position outputs. Later rvLLM changes add
+checked loading, preprocessing parity fixes, and serving integration.
+
+Upstream: https://github.com/huggingface/transformers
+Copyright (c) HuggingFace Inc. and Google.
+License: Apache License, Version 2.0. The full terms are in `LICENSE`.

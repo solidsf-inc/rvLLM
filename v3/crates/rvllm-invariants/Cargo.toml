@@ -1,0 +1,18 @@
+[package]
+name = "rvllm-invariants"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Architecture and source-size release gates for rvLLM"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+
+[dev-dependencies]
+toml = "0.9"

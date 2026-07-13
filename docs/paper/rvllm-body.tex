@@ -1,0 +1,52 @@
+\begin{center}
+  {\LARGE\bfseries rvLLM: an accelerator-oriented inference runtime\par}
+  \vspace{0.5em}
+  {\large m0at\par}
+  {\small\texttt{https://github.com/solidsf-inc/rvLLM}\par}
+\end{center}
+
+\begin{abstract}
+rvLLM is a Rust inference runtime organized around explicit memory layouts,
+paged key/value state, accelerator-specific kernels, and fail-closed dispatch.
+The public source contains a CUDA serving path plus experimental Metal and
+vision components. This note describes the source architecture; it makes no
+performance claim because no released-source benchmark receipt accompanies it.
+\end{abstract}
+
+\section{Architecture}
+The \texttt{v3} workspace separates model configuration, loading, memory,
+metadata, attention, fused operations, graph capture, sampling, scheduling, and
+HTTP serving. The runtime owns the state transition from a validated request to
+a batch plan, accelerator launches, and collected output. Accelerator-specific
+artifacts are explicit inputs and missing required artifacts are errors.
+
+\section{Execution}
+Prefill creates model state and paged key/value entries for the prompt. Decode
+reuses that state while advancing sequence metadata one token at a time. Each
+layer applies normalization, projections, rotary position encoding, attention,
+feed-forward operations, and residual updates. Final normalization, the
+language-model head, and sampling select output tokens.
+
+\section{Correctness boundaries}
+Model files and metadata are untrusted inputs. Sizes and offsets require checked
+arithmetic, paths must stay within configured roots, and unsupported dtypes or
+shapes must fail before launch. Captured graphs are valid only for the exact
+buffer layout and launch fingerprint used during capture. Performance changes
+must preserve reference, eager/replay, and real-weight parity.
+
+\section{Serving surface}
+The server exposes local health, status, metrics, model listing, text completion,
+and chat completion routes. It binds loopback only. Remote use requires an
+audited TLS/authentication proxy. Multiple-choice generation and the Responses
+API are outside the implemented surface.
+
+\section{Status and evaluation}
+CUDA is the primary integrated backend. Metal and vision code are feature-gated
+and remain release-blocked until reproducible real-device, real-weight parity
+and API smoke tests are published. Benchmark results require an immutable source
+SHA, complete environment, raw output, and a content-hashed receipt.
+
+\section{Licensing}
+rvLLM is distributed under Apache License 2.0. Third-party ports retain upstream
+notices and, where applicable, immediate-source revisions in source headers and
+\texttt{LICENSES/}.

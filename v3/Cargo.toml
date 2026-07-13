@@ -1,0 +1,63 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/rvllm-core",
+    "crates/rvllm-mem",
+    "crates/rvllm-kernels",
+    "crates/rvllm-cutlass",
+    "crates/rvllm-attention",
+    "crates/rvllm-fused",
+    "crates/rvllm-metadata",
+    "crates/rvllm-graph",
+    "crates/rvllm-loader",
+    "crates/rvllm-sampling",
+    "crates/rvllm-runtime",
+    "crates/rvllm-serve",
+    "crates/rvllm-mcp",
+    "crates/rvllm-bench",
+    "crates/rvllm-invariants",
+    "crates/rvllm-vision",
+    "crates/rvllm-imageio",
+    "crates/rvllm-metal",
+]
+
+[workspace.package]
+version = "0.3.0"
+edition = "2021"
+rust-version = "1.95"
+license = "Apache-2.0"
+authors = ["m0at <47344131+m0at@users.noreply.github.com>"]
+repository = "https://github.com/solidsf-inc/rvLLM"
+
+[workspace.dependencies]
+rvllm-core      = { path = "crates/rvllm-core", version = "=0.3.0" }
+rvllm-mem       = { path = "crates/rvllm-mem", version = "=0.3.0" }
+rvllm-kernels   = { path = "crates/rvllm-kernels", version = "=0.3.0" }
+rvllm-cutlass   = { path = "crates/rvllm-cutlass", version = "=0.3.0" }
+rvllm-attention = { path = "crates/rvllm-attention", version = "=0.3.0" }
+rvllm-fused     = { path = "crates/rvllm-fused", version = "=0.3.0" }
+rvllm-metadata  = { path = "crates/rvllm-metadata", version = "=0.3.0" }
+rvllm-graph     = { path = "crates/rvllm-graph", version = "=0.3.0" }
+rvllm-loader    = { path = "crates/rvllm-loader", version = "=0.3.0" }
+rvllm-sampling  = { path = "crates/rvllm-sampling", version = "=0.3.0" }
+rvllm-runtime   = { path = "crates/rvllm-runtime", version = "=0.3.0" }
+rvllm-metal     = { path = "crates/rvllm-metal", version = "=0.3.0" }
+
+metal = "0.27"
+
+half = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+debug = 0
+strip = "symbols"
+
+[profile.dev]
+opt-level = 1

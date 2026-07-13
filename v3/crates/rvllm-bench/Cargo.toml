@@ -1,0 +1,57 @@
+[package]
+name = "rvllm-bench"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Validation and benchmark binaries for rvLLM"
+publish = false
+
+# Accelerator binaries are gated so host-only workspace checks do not compile
+# hardware entry points that cannot execute.
+
+[[bin]]
+name = "rvllm-bench"
+path = "src/main.rs"
+required-features = ["cuda"]
+
+[[bin]]
+name = "rvllm-eval"
+path = "src/bin/rvllm_eval.rs"
+required-features = ["cuda"]
+
+[[bin]]
+name = "rvllm-ppl"
+path = "src/bin/rvllm_ppl.rs"
+required-features = ["cuda"]
+
+[[bin]]
+name = "rvllm-metal-ppl"
+path = "src/bin/rvllm_metal_ppl.rs"
+required-features = ["metal"]
+
+[features]
+default = []
+cuda = ["rvllm-runtime/cuda", "rvllm-fused/cuda", "rvllm-mem/cuda", "dep:cudarc"]
+metal = ["dep:rvllm-loader", "dep:rvllm-metal", "rvllm-loader/metal", "rvllm-metal/metal"]
+# Forward the runtime's Blackwell feature for the matching hardware build.
+gb10 = ["cuda", "rvllm-runtime/gb10"]
+
+[dependencies]
+rvllm-core = { workspace = true }
+rvllm-runtime = { workspace = true }
+rvllm-fused = { workspace = true }
+rvllm-mem = { workspace = true }
+rvllm-kernels = { workspace = true }
+rvllm-cutlass = { workspace = true }
+rvllm-loader = { workspace = true, optional = true }
+rvllm-metal = { workspace = true, optional = true, features = ["metal"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = "0.10"
+tokenizers = { version = "0.22.2", default-features = false, features = ["onig"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+cudarc = { version = "0.19", features = ["driver", "cuda-version-from-build-system"], optional = true }

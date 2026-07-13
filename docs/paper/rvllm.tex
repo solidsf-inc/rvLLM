@@ -1,0 +1,41 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage[dvipsnames,table]{xcolor}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{MidnightBlue}\bfseries,
+  commentstyle=\color{OliveGreen},
+  stringstyle=\color{BrickRed},
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{gray!40},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  xleftmargin=2em,
+  framexleftmargin=1.5em,
+  columns=flexible,
+  showstringspaces=false,
+}
+\usepackage[colorlinks=true,linkcolor=MidnightBlue,citecolor=OliveGreen,urlcolor=BrickRed]{hyperref}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{titlesec}
+\titleformat{\section}{\large\bfseries\color{MidnightBlue}}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{MidnightBlue!80}}{\thesubsection}{1em}{}
+\newcommand{\thead}[1]{\textbf{\color{white}#1}}
+\definecolor{HeaderBlue}{HTML}{2C3E6B}
+
+\begin{document}
+\input{rvllm-body}
+\end{document}

@@ -1,0 +1,27 @@
+[package]
+name = "rvllm-attention"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+# rvllm-attention: FA3 SM90 paged decode + prefill wrapper.
+# Engine refuses to start without libfa3_kernels.so. No PTX fallback.
+# See v3/specs/10-attention.md.
+
+[features]
+default = []
+cuda = ["rvllm-kernels/cuda", "rvllm-mem/cuda", "dep:libloading", "dep:cudarc"]
+# Apple Silicon Metal dispatch. Only buildable on macOS aarch64; the
+# `rvllm-metal` crate itself compile_errors on other targets when its
+# own `metal` feature is on, so this feature is a no-op everywhere else.
+metal = ["dep:rvllm-metal", "rvllm-metal/metal", "rvllm-mem/metal"]
+
+[dependencies]
+rvllm-core = { workspace = true }
+rvllm-mem = { workspace = true }
+rvllm-kernels = { workspace = true }
+libloading = { version = "0.8", optional = true }
+cudarc = { version = "0.19", features = ["driver", "cuda-version-from-build-system"], optional = true }
+rvllm-metal = { workspace = true, optional = true, features = ["metal"] }

@@ -1,0 +1,52 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage[dvipsnames,table]{xcolor}
+\usepackage{tikz}
+\usepackage{eso-pic}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+
+% Dark colors
+\definecolor{dktop}{HTML}{0a0a0a}
+\definecolor{dkbot}{HTML}{000000}
+\definecolor{dkfg}{HTML}{d4d4d4}
+\definecolor{dkcyan}{HTML}{5eead4}
+\definecolor{dkgreen}{HTML}{86efac}
+\definecolor{dkorange}{HTML}{fdba74}
+\definecolor{dkgray}{HTML}{4a4a60}
+\definecolor{HeaderBlue}{HTML}{0a0a0a}
+
+% Gradient background
+\AddToShipoutPictureBG{%
+\begin{tikzpicture}[remember picture,overlay]
+\fill[top color=dktop,bottom color=dkbot](current page.south west)rectangle(current page.north east);
+\end{tikzpicture}}
+
+\color{dkfg}
+\makeatletter\newcommand{\globalcolor}[1]{\color{#1}\global\let\default@color\current@color}\makeatother
+\AtBeginDocument{\globalcolor{dkfg}}
+\arrayrulecolor{dkgray}
+
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily\small\color{dkfg},keywordstyle=\bfseries\color{dkfg},commentstyle=\itshape\color{dkfg!70},stringstyle=\color{dkfg},breaklines=true,frame=single,rulecolor=\color{dkgray},numbers=left,numberstyle=\tiny\color{dkgray},xleftmargin=2em,framexleftmargin=1.5em,columns=flexible,showstringspaces=false,backgroundcolor=\color{dkbot}}
+
+\usepackage[colorlinks=false,pdfborder={0 0 0},urlbordercolor=dkfg]{hyperref}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{titlesec}
+\titleformat{\section}{\large\bfseries\color{dkfg}}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{dkfg}}{\thesubsection}{1em}{}
+
+\newcommand{\thead}[1]{\textbf{#1}}
+
+\begin{document}
+\input{rvllm-body}
+\end{document}

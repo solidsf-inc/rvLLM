@@ -1,0 +1,20 @@
+[package]
+name = "rvllm-metadata"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+# rvllm-metadata: checked per-bucket layout and one packed upload API.
+# MetadataLayout is keyed by (bucket, max_blocks_per_seq); graph replay
+# verifies its serialized layout hash before use.
+
+[features]
+default = []
+cuda = ["rvllm-mem/cuda"]
+
+[dependencies]
+rvllm-core = { workspace = true }
+rvllm-mem = { workspace = true }
+sha2 = "0.10"

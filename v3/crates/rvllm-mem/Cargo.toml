@@ -1,0 +1,33 @@
+[package]
+name = "rvllm-mem"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+# rvllm-mem: HBM arena, Region, Tensor, Stream, Event, CaptureScope, GraphSafe,
+#            PinnedPool, KvLayout. Per v3/specs/{04,05}.md.
+#
+# CUDA resources retain a context lease, arenas reserve ranges atomically, and
+# tensor/pinned-buffer constructors validate byte extents. Actual CUDA FFI is
+# behind the `cuda` feature so bookkeeping tests run on hosts without CUDA.
+
+[features]
+default = []
+cuda = ["dep:cudarc"]
+# GB10 / sm_121 target: adds `UnifiedArena` on top of `HbmArena`.
+# Pair with `--features cuda` on hardware. `gb10` without `cuda` exposes the
+# type but its production constructor fails closed.
+gb10 = []
+# Apple Silicon Metal target: adds `MetalKvAllocator` (single MTLBuffer
+# pool, shared storage mode). Requires macOS aarch64 at build time;
+# enabling on other targets is a compile error inside `rvllm-metal`.
+metal = ["dep:rvllm-metal", "dep:metal", "rvllm-metal/metal"]
+
+[dependencies]
+rvllm-core = { workspace = true }
+half = { workspace = true }
+cudarc = { version = "0.19", features = ["driver", "cuda-version-from-build-system"], optional = true }
+rvllm-metal = { workspace = true, optional = true }
+metal = { workspace = true, optional = true }

@@ -1,0 +1,47 @@
+services:
+  rvllm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: rvllm:${RVLLM_IMAGE_TAG:?set RVLLM_IMAGE_TAG to an immutable source SHA}
+    network_mode: host
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    tmpfs:
+      - /tmp:size=64m
+    volumes:
+      - "${RVLLM_MODEL_DIR:?set RVLLM_MODEL_DIR}:/models:ro"
+      - "${RVLLM_ARTIFACTS_DIR:?set RVLLM_ARTIFACTS_DIR}:/artifacts:ro"
+    environment:
+      RVLLM_BACKEND: cuda
+      RVLLM_MODEL_DIR: /models
+      RVLLM_KERNELS_DIR: /artifacts
+      RVLLM_CUTLASS_SO: "/artifacts/${RVLLM_KERNEL_ARCH:?set RVLLM_KERNEL_ARCH}/libcutlass_kernels.so"
+      RVLLM_FA3_SO: "/artifacts/${RVLLM_KERNEL_ARCH:?set RVLLM_KERNEL_ARCH}/libfa3_kernels.so"
+      RVLLM_POLICY: "/artifacts/${RVLLM_KERNEL_ARCH:?set RVLLM_KERNEL_ARCH}/policy.json"
+      RVLLM_RELEASE_REVISION: "${RVLLM_RELEASE_REVISION:?set RVLLM_RELEASE_REVISION}"
+      RVLLM_KERNEL_ARCH: "${RVLLM_KERNEL_ARCH:?set RVLLM_KERNEL_ARCH}"
+      RVLLM_KERNEL_MANIFEST_SHA256: "${RVLLM_KERNEL_MANIFEST_SHA256:?set RVLLM_KERNEL_MANIFEST_SHA256}"
+      RVLLM_POLICY_SHA256: "${RVLLM_POLICY_SHA256:?set RVLLM_POLICY_SHA256}"
+      RVLLM_SERVED_MODEL_NAME: "${RVLLM_SERVED_MODEL_NAME:-rvLLM}"
+      RVLLM_API_KEY: "${RVLLM_API_KEY:-}"
+      RUST_LOG: "${RUST_LOG:-info}"
+    command:
+      - --backend
+      - cuda
+      - --host
+      - 127.0.0.1
+      - --port
+      - "${RVLLM_PORT:-8080}"
+      - --served-model-name
+      - "${RVLLM_SERVED_MODEL_NAME:-rvLLM}"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

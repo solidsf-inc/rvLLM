@@ -1,0 +1,25 @@
+[package]
+name = "rvllm-cutlass"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+# rvllm-cutlass: FP8 GEMM variant catalog + autotune policy.
+# Mainloop/epilogue schedule pairing is enforced at the Rust type level
+# (mirror of the CUDA static_assert in cutlass_fp8_gemm_residual.cu).
+# See v3/specs/11-cutlass-fp8.md.
+
+[features]
+default = []
+cuda = ["rvllm-kernels/cuda", "rvllm-mem/cuda", "dep:libloading", "dep:cudarc"]
+
+[dependencies]
+rvllm-core = { workspace = true }
+rvllm-mem = { workspace = true }
+rvllm-kernels = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+libloading = { version = "0.8", optional = true }
+cudarc = { version = "0.19", features = ["driver", "cublaslt", "cuda-version-from-build-system"], optional = true }

@@ -1,0 +1,64 @@
+[package]
+name = "rvllm-runtime"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+# rvllm-runtime: Engine (type-state step_launch/step_collect),
+# scheduler (Request state machine, BatchPlan), layer_exec (pure fn).
+# See v3/specs/07-scheduler.md + 09-layer.md.
+
+[features]
+default = []
+cuda = [
+    "rvllm-mem/cuda",
+    "rvllm-cutlass/cuda",
+    "rvllm-attention/cuda",
+    "rvllm-fused/cuda",
+    "rvllm-metadata/cuda",
+    "rvllm-graph/cuda",
+    "rvllm-sampling/cuda",
+    "dep:cudarc",
+]
+# GB10 / sm_121: `Bringup::load` picks `UnifiedArena`
+# (`cuMemAllocManaged`) instead of `HbmArena` (`cuMemAlloc_v2`) when
+# the live device is a Blackwell consumer part. Implies `cuda`.
+gb10 = ["cuda", "rvllm-mem/gb10"]
+# Apple Silicon Metal sources and validation. The Gemma 4 end-to-end
+# forward remains fail-closed until every stage passes parity.
+metal = [
+    "dep:rvllm-metal",
+    "dep:metal",
+    "rvllm-mem/metal",
+    "rvllm-loader/metal",
+    "rvllm-attention/metal",
+]
+probe-gemma4-load = ["gb10"]
+
+# Hardware probe. It is excluded from normal builds and requires explicit
+# model, artifact, policy, prompt, and receipt paths.
+[[bin]]
+name = "probe-gemma4-load"
+path = "src/bin/probe_gemma4_load.rs"
+required-features = ["probe-gemma4-load"]
+
+[dependencies]
+rvllm-core = { workspace = true }
+rvllm-mem = { workspace = true }
+rvllm-kernels = { workspace = true }
+rvllm-cutlass = { workspace = true }
+rvllm-attention = { workspace = true }
+rvllm-fused = { workspace = true }
+rvllm-metadata = { workspace = true }
+rvllm-graph = { workspace = true }
+rvllm-loader = { workspace = true }
+rvllm-sampling = { workspace = true }
+tracing = { workspace = true }
+serde_json = { workspace = true }
+cudarc = { version = "0.19", features = ["driver", "cuda-version-from-build-system"], optional = true }
+rvllm-metal = { workspace = true, optional = true, features = ["metal"] }
+
+[target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
+metal = { workspace = true, optional = true }
