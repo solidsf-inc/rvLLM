@@ -109,7 +109,7 @@ jobs:
           git -C /tmp/flash-attention checkout --detach FETCH_HEAD
       - name: Compile and link every release artifact
         env:
-          JOBS: "2"
+          JOBS: "1"
           REVISION: ${{ github.sha }}
         run: |
           if [ "${{ matrix.target }}" = sm90 ]; then
