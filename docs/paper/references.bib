@@ -1,177 +1,52 @@
-@inproceedings{kwon2023vllm,
+@inproceedings{kwon2023pagedattention,
   title     = {Efficient Memory Management for Large Language Model Serving with {PagedAttention}},
   author    = {Kwon, Woosuk and Li, Zhuohan and Zhuang, Siyuan and Sheng, Ying and Zheng, Lianmin and Yu, Cody Hao and Gonzalez, Joseph E. and Zhang, Hao and Stoica, Ion},
-  booktitle = {Proceedings of the 29th Symposium on Operating Systems Principles (SOSP)},
+  booktitle = {Proceedings of the 29th Symposium on Operating Systems Principles},
   year      = {2023},
   doi       = {10.1145/3600006.3613165}
 }
 
-@inproceedings{dao2022flashattention,
-  title     = {{FlashAttention}: Fast and Memory-Efficient Exact Attention with {IO}-Awareness},
-  author    = {Dao, Tri and Fu, Dan Y. and Ermon, Stefano and Rudra, Atri and R\'{e}, Christopher},
-  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
-  year      = {2022}
-}
-
-@inproceedings{dao2023flashattention2,
-  title     = {{FlashAttention-2}: Faster Attention with Better Parallelism and Work Partitioning},
-  author    = {Dao, Tri},
-  booktitle = {International Conference on Learning Representations (ICLR)},
-  year      = {2024}
-}
-
-@misc{tensorrtllm2024,
-  title        = {{TensorRT-LLM}: A {TensorRT} Toolbox for Optimized Large Language Model Inference},
-  author       = {{NVIDIA Corporation}},
-  year         = {2024},
-  howpublished = {\url{https://github.com/NVIDIA/TensorRT-LLM}}
-}
-
-@misc{llamacpp2023,
-  title        = {llama.cpp: {LLM} inference in {C/C++}},
-  author       = {Gerganov, Georgi and contributors},
-  year         = {2023},
-  howpublished = {\url{https://github.com/ggerganov/llama.cpp}}
-}
-
-@misc{candle2023,
-  title        = {candle: Minimalist {ML} framework for {Rust}},
-  author       = {{Hugging Face}},
-  year         = {2023},
-  howpublished = {\url{https://github.com/huggingface/candle}}
-}
-
-@article{vaswani2017attention,
-  title   = {Attention Is All You Need},
-  author  = {Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N. and Kaiser, Lukasz and Polosukhin, Illia},
-  journal = {Advances in Neural Information Processing Systems (NeurIPS)},
-  year    = {2017}
-}
-
-@article{touvron2023llama,
-  title   = {{LLaMA}: Open and Efficient Foundation Language Models},
-  author  = {Touvron, Hugo and Lavril, Thibaut and Izacard, Gautier and Martinet, Xavier and Lachaux, Marie-Anne and Lacroix, Timoth\'{e}e and Rozi\`{e}re, Baptiste and Goyal, Naman and Hambro, Eric and Azhar, Faisal and Rodriguez, Aurelien and Joulin, Armand and Grave, Edouard and Lample, Guillaume},
-  journal = {arXiv preprint arXiv:2302.13971},
-  year    = {2023}
-}
-
-@inproceedings{su2021roformer,
-  title     = {{RoFormer}: Enhanced Transformer with Rotary Position Embedding},
-  author    = {Su, Jianlin and Lu, Yu and Pan, Shengfeng and Murtadha, Ahmed and Wen, Bo and Liu, Yunfeng},
-  booktitle = {Neurocomputing},
-  year      = {2024},
-  volume    = {568},
-  pages     = {127063}
-}
-
-@article{zhang2019root,
-  title   = {Root Mean Square Layer Normalization},
-  author  = {Zhang, Biao and Sennrich, Rico},
-  journal = {Advances in Neural Information Processing Systems (NeurIPS)},
-  year    = {2019}
-}
-
-@article{shazeer2020glu,
-  title   = {{GLU} Variants Improve Transformer},
-  author  = {Shazeer, Noam},
-  journal = {arXiv preprint arXiv:2002.05202},
-  year    = {2020}
-}
-
-@misc{cudarc2023,
-  title        = {cudarc: Safe {Rust} bindings to {CUDA}},
-  author       = {Dettmers, Tim and contributors},
-  year         = {2023},
-  howpublished = {\url{https://github.com/coreylowman/cudarc}}
-}
-
-@misc{safetensors2023,
-  title        = {safetensors: Simple, safe way to store and distribute tensors},
-  author       = {{Hugging Face}},
-  year         = {2023},
-  howpublished = {\url{https://github.com/huggingface/safetensors}}
-}
-
-@article{holkman2023fp8,
+@article{micikevicius2022fp8,
   title   = {{FP8} Formats for Deep Learning},
-  author  = {Micikevicius, Paulius and Stosic, Dusan and Burgess, Neil and Cornea, Marius and Dubey, Pradeep and Grisenthwaite, Richard and Ha, Sangwon and Heinecke, Alexander and Judd, Patrick and Kamalu, John and others},
+  author  = {Micikevicius, Paulius and Stosic, Dusan and Burgess, Neil and Cornea, Marius and Dubey, Pradeep and Grisenthwaite, Richard and Ha, Sangwon and Heinecke, Alexander and Judd, Patrick and Kamalu, John and Mellempudi, Naveen and Oberman, Stuart and Shoeybi, Mohammad and Siu, Michael and Wu, Hao},
   journal = {arXiv preprint arXiv:2209.05433},
   year    = {2022}
 }
 
-@misc{rayon2023,
-  title        = {Rayon: Data parallelism library for {Rust}},
-  author       = {Matsakis, Niko and contributors},
-  year         = {2023},
-  howpublished = {\url{https://github.com/rayon-rs/rayon}}
+@article{shah2024flashattention3,
+  title   = {{FlashAttention-3}: Fast and Accurate Attention with Asynchrony and Low-precision},
+  author  = {Shah, Jay and Bikshandi, Ganesh and Zhang, Ying and Thakkar, Vijay and Ramani, Pradeep and Dao, Tri},
+  journal = {arXiv preprint arXiv:2407.08608},
+  year    = {2024}
 }
 
-@misc{axum2023,
-  title        = {axum: Ergonomic and modular web framework built with {Tokio}, {Tower}, and {Hyper}},
-  author       = {{Tokio Contributors}},
-  year         = {2023},
-  howpublished = {\url{https://github.com/tokio-rs/axum}}
-}
-
-@article{leviathan2023speculative,
-  title   = {Fast Inference from Transformers via Speculative Decoding},
-  author  = {Leviathan, Yaniv and Kalman, Matan and Matias, Yossi},
-  journal = {Proceedings of the International Conference on Machine Learning (ICML)},
-  year    = {2023}
-}
-
-@inproceedings{ainslie2023gqa,
-  title     = {{GQA}: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints},
-  author    = {Ainslie, Joshua and Lee-Thorp, James and de Jong, Michiel and Zemlyanskiy, Yury and Lebr\'{o}n, Federico and Sanghai, Sumit},
-  booktitle = {Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP)},
-  year      = {2023}
-}
-
-@article{sheng2023flexgen,
-  title   = {{FlexGen}: High-Throughput Generative Inference of Large Language Models with a Single {GPU}},
-  author  = {Sheng, Ying and Zheng, Lianmin and Yuan, Binhang and Li, Zhuohan and Ryabinin, Max and Chen, Beidi and Liang, Percy and R\'{e}, Christopher and Stoica, Ion and Zhang, Ce},
-  journal = {Proceedings of the International Conference on Machine Learning (ICML)},
-  year    = {2023}
-}
-
-@misc{openai2023api,
-  title        = {{OpenAI} {API} Reference},
-  author       = {{OpenAI}},
-  year         = {2023},
-  howpublished = {\url{https://platform.openai.com/docs/api-reference}}
-}
-
-@misc{cutlass2024,
+@misc{nvidia2026cutlass,
   title        = {{CUTLASS}: {CUDA} Templates for Linear Algebra Subroutines},
   author       = {{NVIDIA Corporation}},
-  year         = {2024},
-  howpublished = {\url{https://github.com/NVIDIA/cutlass}}
+  howpublished = {\href{https://github.com/NVIDIA/cutlass/tree/da5e086dab31d63815acafdac9a9c5893b1c69e2}{Git revision \texttt{da5e086dab31d638}}},
+  year         = {2026}
 }
 
-@misc{shah2024flash3,
-  title        = {{FlashAttention-3}: Fast and Exact Attention with Asynchrony and Low-precision},
-  author       = {Shah, Jay and Bikshandi, Ganesh and Zhang, Ying and Thakkar, Vijay and Ramani, Pradeep and Dao, Tri},
-  year         = {2024},
-  journal      = {arXiv preprint arXiv:2407.08691}
-}
-
-@misc{tensorrt_llm,
-  title        = {{TensorRT-LLM}},
+@misc{nvidia2026cudagraphs,
+  title        = {{CUDA} Graphs},
   author       = {{NVIDIA Corporation}},
-  year         = {2024},
-  howpublished = {\url{https://github.com/NVIDIA/TensorRT-LLM}}
+  howpublished = {\href{https://docs.nvidia.com/cuda/cuda-programming-guide/04-special-topics/cuda-graphs.html}{{CUDA} Programming Guide}},
+  year         = {2026},
+  note         = {Accessed July 14, 2026}
 }
 
-@misc{sglang2024,
-  title        = {{SGLang}: Efficient Execution of Structured Language Model Programs},
-  author       = {Zheng, Lianmin and Yin, Liangsheng and Xie, Zhiqiang and Cheng, Siyuan and Huang, Jeff and Bi, Simon and Sheng, Ying and Gonzalez, Joseph E. and Stoica, Ion},
-  year         = {2024},
-  journal      = {arXiv preprint arXiv:2312.07104}
+@misc{rvllm2026release,
+  title        = {{rvLLM} v0.3.0},
+  author       = {Norris, Andy},
+  organization = {solidSF, Inc.},
+  year         = {2026},
+  howpublished = {\href{https://github.com/solidsf-inc/rvLLM/releases/tag/v0.3.0}{GitHub release v0.3.0}}
 }
 
-@misc{jetstream2024,
-  title        = {{JetStream}: Throughput and Memory Optimized Engine for {LLM} Inference on {XLA} Devices},
-  author       = {{Google}},
-  year         = {2024},
-  howpublished = {\url{https://github.com/google/JetStream}}
+@misc{rvllm2026receipts,
+  title        = {{rvLLM} {H100} Release Validation Receipts},
+  author       = {Norris, Andy},
+  organization = {solidSF, Inc.},
+  year         = {2026},
+  howpublished = {\href{https://github.com/solidsf-inc/rvLLM/tree/80267be97e7f04548ed746f77a7a3c786fc5d196/docs/receipts/h100-2026-07-13}{Immutable public receipt set}}
 }
