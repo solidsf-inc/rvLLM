@@ -2,93 +2,739 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
+  <meta name="description" content="rvLLM Gemma 4 benchmark report for TPU v6e-4 and measured H100 fixed-state decode results.">
   <title>rvLLM benchmarks</title>
   <style>
-    :root{--bg:#070a08;--panel:#0d120f;--ink:#e6f2e9;--muted:#91a397;--line:#263229;--hot:#91ffad;--cold:#99b7ff}
-    *{box-sizing:border-box}
-    body{margin:0;background:radial-gradient(circle at 75% 0,#16251a 0,transparent 34rem),var(--bg);color:var(--ink);font:15px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}
-    main{width:min(1080px,calc(100% - 2rem));margin:auto;padding:4rem 0 5rem}
-    header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2rem;align-items:end;border-bottom:1px solid var(--line);padding-bottom:2rem}
-    .stamp{color:var(--hot);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase}
-    h1,h2,p{margin-top:0}h1{max-width:760px;margin:.65rem 0 .8rem;font:700 clamp(3.4rem,9vw,7.8rem)/.82 Iowan Old Style,Baskerville,serif;letter-spacing:-.065em}
-    .lede{max-width:650px;margin:0;color:var(--muted);font-size:1rem}
-    nav{display:flex;gap:1rem;white-space:nowrap}a{color:var(--ink);text-underline-offset:.25em}a:hover{color:var(--hot)}
-    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin:2rem 0;background:var(--line);border:1px solid var(--line)}
-    .card{background:var(--panel);padding:1.4rem}.card b{display:block;color:var(--hot);font-size:clamp(1.8rem,5vw,3.4rem);letter-spacing:-.06em}.card span{color:var(--muted);font-size:.75rem}
-    section{margin-top:3.5rem}h2{font:700 2rem/1 Iowan Old Style,Baskerville,serif;letter-spacing:-.025em}.note{color:var(--muted);max-width:850px}
-    .table-wrap{overflow-x:auto;border:1px solid var(--line);background:rgba(13,18,15,.8)}
-    table{width:100%;min-width:660px;border-collapse:collapse;font-variant-numeric:tabular-nums}th,td{padding:.72rem .85rem;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}th{color:var(--muted);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase}tbody tr:last-child td{border-bottom:0}.best{color:var(--hot)}
-    .method{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}.method div{background:var(--panel);padding:1rem}.method b{display:block;margin-bottom:.35rem;color:var(--cold);font-size:.74rem;text-transform:uppercase;letter-spacing:.08em}.method p{margin:0;color:var(--muted);font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
-    footer{margin-top:3.5rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.76rem}
-    @media(max-width:760px){main{padding-top:2rem}header{grid-template-columns:1fr}nav{white-space:normal}.cards,.method{grid-template-columns:1fr}h1{font-size:4rem}}
+    :root {
+      --background: #000;
+      --foreground: #fff;
+      --body: #d4d4d4;
+      --secondary: #555;
+      --border: #222;
+      --row: #000;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: var(--background); }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--background);
+      color: var(--body);
+      font-family: "Helvetica Neue", "IBM Plex Sans", Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
+
+    a {
+      color: var(--foreground);
+      text-decoration-color: var(--secondary);
+      text-underline-offset: .25em;
+    }
+
+    a:hover,
+    a:focus-visible { text-decoration-color: var(--foreground); }
+
+    .page {
+      width: min(1500px, 100%);
+      margin: 0 auto;
+      padding: 54px 70px 64px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 64px;
+    }
+
+    .brand-name {
+      color: var(--foreground);
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -.03em;
+    }
+
+    .brand-meta {
+      color: var(--secondary);
+      font-size: .78rem;
+      text-align: right;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 420px;
+      gap: 72px;
+      padding-bottom: 44px;
+      margin-bottom: 34px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h1 {
+      max-width: 800px;
+      margin: 0 0 20px;
+      color: var(--foreground);
+      font-size: clamp(3rem, 4.2vw, 54px);
+      font-weight: 700;
+      line-height: .96;
+      letter-spacing: -.055em;
+    }
+
+    h2 {
+      margin: 0;
+      color: var(--foreground);
+      font-size: 1.4rem;
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -.03em;
+    }
+
+    h3 {
+      margin: 0 0 14px;
+      color: var(--foreground);
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    p { margin: 0; }
+
+    .subtitle {
+      max-width: 680px;
+      color: var(--secondary);
+      font-size: .95rem;
+      line-height: 1.55;
+    }
+
+    .hero-method {
+      padding-left: 28px;
+      border-left: 1px solid var(--border);
+      color: var(--body);
+      font-size: .9rem;
+      line-height: 1.6;
+    }
+
+    .hero-method b { color: var(--foreground); }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      margin-bottom: 46px;
+      border: 1px solid var(--border);
+    }
+
+    .kpi {
+      min-height: 118px;
+      padding: 20px 18px;
+      border-right: 1px solid var(--border);
+    }
+
+    .kpi:last-child { border-right: 0; }
+
+    .kpi-label,
+    .eyebrow {
+      color: var(--secondary);
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .kpi-value {
+      margin-top: 18px;
+      color: var(--foreground);
+      font-size: clamp(1.6rem, 3vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -.04em;
+      line-height: 1;
+    }
+
+    .kpi-detail {
+      margin-top: 10px;
+      color: var(--secondary);
+      font-size: .76rem;
+      line-height: 1.35;
+    }
+
+    .section {
+      padding-top: 34px;
+      margin-top: 34px;
+      border-top: 1px solid var(--border);
+    }
+
+    .section-heading {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 520px);
+      gap: 48px;
+      align-items: start;
+      margin-bottom: 24px;
+    }
+
+    .section-title .eyebrow { margin-bottom: 10px; }
+
+    .section-note {
+      color: var(--secondary);
+      font-size: .82rem;
+      line-height: 1.5;
+    }
+
+    .status {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 5px 8px;
+      border: 1px solid var(--foreground);
+      background: var(--foreground);
+      color: var(--background);
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .chart-frame {
+      padding: 22px 18px 8px;
+      border: 1px solid var(--border);
+    }
+
+    .chart-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 28px;
+      margin-bottom: 8px;
+    }
+
+    .chart-title {
+      color: var(--foreground);
+      font-size: .88rem;
+      font-weight: 700;
+    }
+
+    .chart-unit {
+      margin-top: 4px;
+      color: var(--secondary);
+      font-size: .72rem;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 12px 20px;
+      color: var(--body);
+      font-size: .72rem;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+    }
+
+    .legend-line {
+      display: inline-block;
+      width: 26px;
+      border-top: 2px solid var(--foreground);
+    }
+
+    .legend-line.gray {
+      border-color: var(--body);
+      border-top-style: dashed;
+    }
+
+    .legend-line.mid {
+      border-color: var(--body);
+      border-top-style: dashed;
+    }
+
+    .legend-line.dark {
+      border-color: var(--secondary);
+      border-top-style: dotted;
+    }
+
+    .chart-scroll {
+      width: 100%;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+    }
+
+    .plot {
+      display: block;
+      width: 100%;
+      min-width: 720px;
+      height: auto;
+    }
+
+    .plot text {
+      fill: var(--secondary);
+      font-family: "Helvetica Neue", "IBM Plex Sans", Helvetica, Arial, sans-serif;
+      font-size: 13px;
+    }
+
+    .plot .axis,
+    .plot .grid {
+      fill: none;
+      stroke: var(--border);
+      vector-effect: non-scaling-stroke;
+    }
+
+    .plot .grid { stroke-dasharray: 3 3; }
+
+    .plot .axis { stroke: var(--border); }
+
+    .plot .cutlass,
+    .plot .e4b {
+      fill: none;
+      stroke: var(--foreground);
+      stroke-width: 2.5;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .plot .cublas,
+    .plot .a4b {
+      fill: none;
+      stroke: var(--body);
+      stroke-width: 2;
+      stroke-dasharray: 8 5;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .plot .b31 {
+      fill: none;
+      stroke: var(--secondary);
+      stroke-width: 2;
+      stroke-dasharray: 2 5;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .plot .point {
+      fill: var(--background);
+      stroke-width: 2;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .plot .point-white { stroke: var(--foreground); }
+    .plot .point-gray { stroke: var(--body); }
+    .plot .point-mid { stroke: var(--body); }
+    .plot .point-dark { stroke: var(--secondary); }
+
+    .plot .end-value {
+      fill: var(--foreground);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .table-wrap {
+      margin-top: 18px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 680px;
+      border-collapse: collapse;
+      color: var(--body);
+      font-size: .78rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    th {
+      padding: 11px 8px;
+      border-bottom: 1px solid var(--foreground);
+      color: var(--secondary);
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-align: right;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 12px 8px;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    th:first-child,
+    td:first-child { text-align: left; }
+
+    tbody tr:nth-child(even) { background: var(--row); }
+    tbody tr:last-child td { border-bottom: 0; }
+    td strong { color: var(--foreground); }
+
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border: 1px solid var(--border);
+    }
+
+    .method-item {
+      min-height: 150px;
+      padding: 20px 18px;
+      border-right: 1px solid var(--border);
+    }
+
+    .method-item:last-child { border-right: 0; }
+
+    .method-item p,
+    .method-item li {
+      color: var(--secondary);
+      font-size: .78rem;
+      line-height: 1.5;
+    }
+
+    .method-item strong { color: var(--body); }
+
+    .method-item ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .method-item li + li { margin-top: 8px; }
+
+    .receipt-link {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .pending {
+      color: var(--secondary);
+      font-family: "IBM Plex Mono", SFMono-Regular, Consolas, monospace;
+      font-size: .66rem;
+      text-transform: uppercase;
+    }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 32px;
+      padding-top: 24px;
+      margin-top: 40px;
+      border-top: 1px solid var(--border);
+      color: var(--secondary);
+      font-size: .75rem;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 960px) {
+      .page { padding: 38px 32px 48px; }
+      .brand { margin-bottom: 44px; }
+      .hero { grid-template-columns: 1fr; gap: 28px; }
+      .hero-method { padding: 22px 0 0; border-left: 0; border-top: 1px solid var(--border); }
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+      .kpi:nth-child(2) { border-right: 0; }
+      .kpi:nth-child(-n + 2) { border-bottom: 1px solid var(--border); }
+      .section-heading { grid-template-columns: 1fr; gap: 18px; }
+      .method-grid { grid-template-columns: 1fr; }
+      .method-item { min-height: 0; border-right: 0; border-bottom: 1px solid var(--border); }
+      .method-item:last-child { border-bottom: 0; }
+    }
+
+    @media (max-width: 600px) {
+      .page { padding: 28px 18px 36px; }
+      .brand { display: block; margin-bottom: 36px; }
+      .brand-meta { max-width: none; margin-top: 8px; text-align: left; }
+      h1 { font-size: 42px; }
+      .kpis { grid-template-columns: 1fr; }
+      .kpi,
+      .kpi:nth-child(2) { border-right: 0; border-bottom: 1px solid var(--border); }
+      .kpi:last-child { border-bottom: 0; }
+      .chart-frame { padding-inline: 12px; }
+      .chart-head { display: block; }
+      .legend { justify-content: flex-start; margin-top: 14px; }
+      footer { display: block; }
+      footer > :last-child { margin-top: 10px; }
+    }
   </style>
 </head>
 <body>
-<main>
-  <header>
-    <div>
-      <div class="stamp">rvLLM / measured snapshot / 2026-06</div>
-      <h1>Gemma 4, measured.</h1>
-      <p class="lede">Project-reported TPU v6e-4 runs. H100 is being remeasured with the corrected, receipt-producing harness.</p>
+  <main class="page">
+    <div class="brand">
+      <div class="brand-name">solidSF</div>
+      <div class="brand-meta">Report — rvLLM inference / 2026-07-13</div>
     </div>
-    <nav><a href="https://github.com/solidsf-inc/rvLLM">GitHub</a><a href="arch.md">Architecture</a></nav>
-  </header>
 
-  <div class="cards" aria-label="Peak throughput">
-    <div class="card"><b>16,794</b><span>E4B TPU tok/s · B=1024</span></div>
-    <div class="card"><b>9,600</b><span>31B TPU tok/s · B=768</span></div>
-    <div class="card"><b>Remeasuring</b><span>31B rvLLM H100</span></div>
-  </div>
+    <header class="hero">
+      <div>
+        <h1>Gemma 4 inference, measured.</h1>
+        <p class="subtitle">Project-reported TPU v6e-4 throughput and an exact-release H100 fixed-state decode sweep. Different formats and harnesses; read each methodology before comparing.</p>
+      </div>
+      <div class="hero-method">
+        <b>TPU:</b> published project snapshot<br>
+        <b>H100:</b> measured from the exact rvLLM v0.3.0 kernel ZIP<br>
+        <b>Reporting:</b> aggregate tokens per second<br>
+        <b>Scope:</b> inference only; pricing and projections omitted
+      </div>
+    </header>
 
-  <section>
-    <h2>TPU v6e-4</h2>
-    <p class="note">Gemma 4, int8 weights, bf16 activations and KV cache, configured maximum context 2,048. Throughput is aggregate across the batch.</p>
-    <div class="table-wrap"><table aria-label="TPU summary">
-      <thead><tr><th>Metric</th><th>E4B (4B)</th><th>26B-A4B</th><th>31B</th></tr></thead>
-      <tbody>
-        <tr><td>Perplexity</td><td class="best">5.87</td><td>90.21</td><td>24.76</td></tr>
-        <tr><td>B=1 tok/s</td><td class="best">78.3</td><td>52.9</td><td>44.2</td></tr>
-        <tr><td>Cached TTFT</td><td class="best">25.9 ms</td><td>35.3 ms</td><td>73.3 ms</td></tr>
-        <tr><td>Peak tok/s</td><td class="best">16,794</td><td>14,899</td><td>9,600</td></tr>
-        <tr><td>Peak batch</td><td>1,024</td><td>768</td><td>768</td></tr>
-      </tbody>
-    </table></div>
-  </section>
+    <section class="kpis" aria-label="Benchmark highlights">
+      <div class="kpi">
+        <div class="kpi-label">TPU peak / E4B</div>
+        <div class="kpi-value">16,794</div>
+        <div class="kpi-detail">tok/s · batch 1,024</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">TPU peak / 31B</div>
+        <div class="kpi-value">9,600</div>
+        <div class="kpi-detail">tok/s · batch 768</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">H100 measured / 31B</div>
+        <div class="kpi-value">7,492</div>
+        <div class="kpi-detail">CUTLASS tok/s · batch 512</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">H100 route delta / B512</div>
+        <div class="kpi-value">+17.9%</div>
+        <div class="kpi-detail">CUTLASS vs. cuBLASLt</div>
+      </div>
+    </section>
 
-  <section>
-    <h2>TPU batch sweep</h2>
-    <div class="table-wrap"><table aria-label="TPU batch throughput">
-      <thead><tr><th>Batch</th><th>E4B tok/s</th><th>26B-A4B tok/s</th><th>31B tok/s</th></tr></thead>
-      <tbody>
-        <tr><td>1</td><td>78</td><td>53</td><td>44</td></tr>
-        <tr><td>8</td><td>542</td><td>390</td><td>318</td></tr>
-        <tr><td>64</td><td>3,661</td><td>2,662</td><td>2,112</td></tr>
-        <tr><td>128</td><td>6,298</td><td>4,915</td><td>3,853</td></tr>
-        <tr><td>256</td><td>10,214</td><td>8,192</td><td>6,246</td></tr>
-        <tr><td>512</td><td>13,773</td><td>12,390</td><td>8,550</td></tr>
-        <tr><td>768</td><td>15,514</td><td class="best">14,899</td><td class="best">9,600</td></tr>
-        <tr><td>1,024</td><td class="best">16,794</td><td>—</td><td>—</td></tr>
-      </tbody>
-    </table></div>
-  </section>
+    <section class="section" aria-labelledby="h100-title">
+      <div class="section-heading">
+        <div class="section-title">
+          <div class="eyebrow">NVIDIA H100 80 GB / Gemma 4 31B</div>
+          <h2 id="h100-title">Fixed-state decode batch sweep</h2>
+          <div class="status">Measured · exact v0.3.0 kernel ZIP</div>
+        </div>
+        <p class="section-note">Synthetic, fixed-state single-token decode; not end-to-end generation. FP8 E4M3 weights, F16 KV, context 1, CUDA graph, 1,024 blocks, 10 warmup and 100 timed iterations. Thirty fresh valid samples from the exact v0.3.0 kernel ZIP; zero discarded. Plot and table show medians.</p>
+      </div>
 
-  <section>
-    <h2>H100, 31B</h2>
-    <p class="note">The April 2026 rows were removed after revalidation found invalid KV-page and block-table geometry in that benchmark harness. Corrected H100 results will include exact source, model, kernel, environment, geometry, parity, and timing receipts.</p>
-  </section>
+      <div class="chart-frame">
+        <div class="chart-head">
+          <div>
+            <div class="chart-title">Aggregate decode throughput</div>
+            <div class="chart-unit">tokens per second · higher is better</div>
+          </div>
+          <div class="legend" aria-label="H100 chart legend">
+            <span class="legend-item"><span class="legend-line"></span>CUTLASS</span>
+            <span class="legend-item"><span class="legend-line gray"></span>cuBLASLt</span>
+          </div>
+        </div>
+        <div class="chart-scroll">
+          <svg class="plot" viewBox="0 0 1200 430" role="img" aria-labelledby="h100-chart-title h100-chart-desc">
+            <title id="h100-chart-title">H100 31B fixed-state decode batch sweep</title>
+            <desc id="h100-chart-desc">CUTLASS and cuBLASLt aggregate tokens per second from batch 1 through 512. cuBLASLt leads at batches 1, 8, and 32; CUTLASS leads at batch 64 and above.</desc>
 
-  <section>
-    <h2>Method limits</h2>
-    <div class="method">
-      <div><b>Timing</b><p>TPU cached runs discarded XLA compilation and synchronized with block_until_ready().</p></div>
-      <div><b>Perplexity</b><p>The TPU values use one 86-token passage with BOS; they are not corpus-scale evaluations.</p></div>
-      <div><b>Provenance</b><p>This source snapshot does not include raw run receipts or immutable model revisions. New results must include both.</p></div>
-    </div>
-  </section>
+            <line class="grid" x1="78" y1="42" x2="1122" y2="42"></line>
+            <line class="grid" x1="78" y1="117" x2="1122" y2="117"></line>
+            <line class="grid" x1="78" y1="192" x2="1122" y2="192"></line>
+            <line class="grid" x1="78" y1="267" x2="1122" y2="267"></line>
+            <line class="axis" x1="78" y1="342" x2="1122" y2="342"></line>
+            <line class="axis" x1="78" y1="42" x2="78" y2="342"></line>
 
-  <footer>Historical measurement snapshot. Hardware pricing and projections are intentionally omitted.</footer>
-</main>
+            <text x="64" y="347" text-anchor="end">0</text>
+            <text x="64" y="272" text-anchor="end">2k</text>
+            <text x="64" y="197" text-anchor="end">4k</text>
+            <text x="64" y="122" text-anchor="end">6k</text>
+            <text x="64" y="47" text-anchor="end">8k</text>
+
+            <text x="78" y="374" text-anchor="middle">1</text>
+            <text x="252" y="374" text-anchor="middle">8</text>
+            <text x="426" y="374" text-anchor="middle">32</text>
+            <text x="600" y="374" text-anchor="middle">64</text>
+            <text x="774" y="374" text-anchor="middle">128</text>
+            <text x="948" y="374" text-anchor="middle">256</text>
+            <text x="1122" y="374" text-anchor="middle">512</text>
+            <text x="600" y="412" text-anchor="middle">Batch</text>
+
+            <polyline class="cutlass" points="78,340.2 252,328.1 426,287.7 600,238.3 774,152.7 948,72.5 1122,61.0"></polyline>
+            <polyline class="cublas" points="78,340.2 252,326.2 426,284.1 600,240.9 774,176.8 948,130.2 1122,103.6"></polyline>
+
+            <circle class="point point-white" cx="78" cy="340.2" r="4"></circle>
+            <circle class="point point-white" cx="252" cy="328.1" r="4"></circle>
+            <circle class="point point-white" cx="426" cy="287.7" r="4"></circle>
+            <circle class="point point-white" cx="600" cy="238.3" r="4"></circle>
+            <circle class="point point-white" cx="774" cy="152.7" r="4"></circle>
+            <circle class="point point-white" cx="948" cy="72.5" r="4"></circle>
+            <circle class="point point-white" cx="1122" cy="61.0" r="4"></circle>
+
+            <rect class="point point-gray" x="74" y="336.2" width="8" height="8"></rect>
+            <rect class="point point-gray" x="248" y="322.2" width="8" height="8"></rect>
+            <rect class="point point-gray" x="422" y="280.1" width="8" height="8"></rect>
+            <rect class="point point-gray" x="596" y="236.9" width="8" height="8"></rect>
+            <rect class="point point-gray" x="770" y="172.8" width="8" height="8"></rect>
+            <rect class="point point-gray" x="944" y="126.2" width="8" height="8"></rect>
+            <rect class="point point-gray" x="1118" y="99.6" width="8" height="8"></rect>
+
+            <text class="end-value" x="1106" y="48" text-anchor="end">7,492</text>
+            <text x="1106" y="94" text-anchor="end">6,356</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table aria-label="Measured H100 fixed-state decode throughput">
+          <thead>
+            <tr><th>Batch</th><th>CUTLASS tok/s</th><th>cuBLASLt tok/s</th><th>Leading route</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>46.704</td><td><strong>48.768</strong></td><td>cuBLASLt</td></tr>
+            <tr><td>8</td><td>369.495</td><td><strong>421.023</strong></td><td>cuBLASLt</td></tr>
+            <tr><td>32</td><td>1,447.185</td><td><strong>1,543.125</strong></td><td>cuBLASLt</td></tr>
+            <tr><td>64</td><td><strong>2,764.438</strong></td><td>2,696.043</td><td>CUTLASS</td></tr>
+            <tr><td>128</td><td><strong>5,048.066</strong></td><td>4,405.914</td><td>CUTLASS</td></tr>
+            <tr><td>256</td><td><strong>7,186.885</strong></td><td>5,647.870</td><td>CUTLASS</td></tr>
+            <tr><td>512</td><td><strong>7,492.040</strong></td><td>6,356.098</td><td>CUTLASS</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="tpu-title">
+      <div class="section-heading">
+        <div class="section-title">
+          <div class="eyebrow">Google TPU v6e-4 / Gemma 4</div>
+          <h2 id="tpu-title">Published project batch sweep</h2>
+        </div>
+        <p class="section-note">Int8 weights, bf16 activations and KV cache, configured maximum context 2,048. Throughput is aggregate across each batch. These project-reported values are retained with their original provenance limits below.</p>
+      </div>
+
+      <div class="chart-frame">
+        <div class="chart-head">
+          <div>
+            <div class="chart-title">Aggregate decode throughput</div>
+            <div class="chart-unit">tokens per second · higher is better</div>
+          </div>
+          <div class="legend" aria-label="TPU chart legend">
+            <span class="legend-item"><span class="legend-line"></span>E4B</span>
+            <span class="legend-item"><span class="legend-line mid"></span>26B-A4B</span>
+            <span class="legend-item"><span class="legend-line dark"></span>31B</span>
+          </div>
+        </div>
+        <div class="chart-scroll">
+          <svg class="plot" viewBox="0 0 1200 430" role="img" aria-labelledby="tpu-chart-title tpu-chart-desc">
+            <title id="tpu-chart-title">TPU v6e-4 Gemma 4 batch sweep</title>
+            <desc id="tpu-chart-desc">Aggregate throughput for E4B, 26B-A4B, and 31B models from batch 1 to batch 1,024, where available.</desc>
+
+            <line class="grid" x1="78" y1="42" x2="1122" y2="42"></line>
+            <line class="grid" x1="78" y1="75.3" x2="1122" y2="75.3"></line>
+            <line class="grid" x1="78" y1="142" x2="1122" y2="142"></line>
+            <line class="grid" x1="78" y1="208.7" x2="1122" y2="208.7"></line>
+            <line class="grid" x1="78" y1="275.3" x2="1122" y2="275.3"></line>
+            <line class="axis" x1="78" y1="342" x2="1122" y2="342"></line>
+            <line class="axis" x1="78" y1="42" x2="78" y2="342"></line>
+
+            <text x="64" y="347" text-anchor="end">0</text>
+            <text x="64" y="280.3" text-anchor="end">4k</text>
+            <text x="64" y="213.7" text-anchor="end">8k</text>
+            <text x="64" y="147" text-anchor="end">12k</text>
+            <text x="64" y="80.3" text-anchor="end">16k</text>
+            <text x="64" y="47" text-anchor="end">18k</text>
+
+            <text x="78" y="374" text-anchor="middle">1</text>
+            <text x="227" y="374" text-anchor="middle">8</text>
+            <text x="376" y="374" text-anchor="middle">64</text>
+            <text x="525" y="374" text-anchor="middle">128</text>
+            <text x="675" y="374" text-anchor="middle">256</text>
+            <text x="824" y="374" text-anchor="middle">512</text>
+            <text x="973" y="374" text-anchor="middle">768</text>
+            <text x="1122" y="374" text-anchor="middle">1,024</text>
+            <text x="600" y="412" text-anchor="middle">Batch</text>
+
+            <polyline class="e4b" points="78,340.7 227,333 376,281 525,237 675,171.8 824,112.5 973,83.4 1122,62.1"></polyline>
+            <polyline class="a4b" points="78,341.1 227,335.5 376,297.6 525,260.1 675,205.5 824,135.5 973,93.7"></polyline>
+            <polyline class="b31" points="78,341.3 227,336.7 376,306.8 525,277.8 675,237.9 824,199.5 973,182"></polyline>
+
+            <circle class="point point-white" cx="78" cy="340.7" r="4"></circle>
+            <circle class="point point-white" cx="227" cy="333" r="4"></circle>
+            <circle class="point point-white" cx="376" cy="281" r="4"></circle>
+            <circle class="point point-white" cx="525" cy="237" r="4"></circle>
+            <circle class="point point-white" cx="675" cy="171.8" r="4"></circle>
+            <circle class="point point-white" cx="824" cy="112.5" r="4"></circle>
+            <circle class="point point-white" cx="973" cy="83.4" r="4"></circle>
+            <circle class="point point-white" cx="1122" cy="62.1" r="4"></circle>
+
+            <rect class="point point-mid" x="74" y="337.1" width="8" height="8"></rect>
+            <rect class="point point-mid" x="223" y="331.5" width="8" height="8"></rect>
+            <rect class="point point-mid" x="372" y="293.6" width="8" height="8"></rect>
+            <rect class="point point-mid" x="521" y="256.1" width="8" height="8"></rect>
+            <rect class="point point-mid" x="671" y="201.5" width="8" height="8"></rect>
+            <rect class="point point-mid" x="820" y="131.5" width="8" height="8"></rect>
+            <rect class="point point-mid" x="969" y="89.7" width="8" height="8"></rect>
+
+            <circle class="point point-dark" cx="78" cy="341.3" r="3.5"></circle>
+            <circle class="point point-dark" cx="227" cy="336.7" r="3.5"></circle>
+            <circle class="point point-dark" cx="376" cy="306.8" r="3.5"></circle>
+            <circle class="point point-dark" cx="525" cy="277.8" r="3.5"></circle>
+            <circle class="point point-dark" cx="675" cy="237.9" r="3.5"></circle>
+            <circle class="point point-dark" cx="824" cy="199.5" r="3.5"></circle>
+            <circle class="point point-dark" cx="973" cy="182" r="3.5"></circle>
+
+            <text class="end-value" x="1106" y="49" text-anchor="end">16,794</text>
+            <text x="958" y="82" text-anchor="end">14,899</text>
+            <text x="958" y="171" text-anchor="end">9,600</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table aria-label="TPU v6e-4 batch throughput">
+          <thead>
+            <tr><th>Batch</th><th>E4B tok/s</th><th>26B-A4B tok/s</th><th>31B tok/s</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>78</td><td>53</td><td>44</td></tr>
+            <tr><td>8</td><td>542</td><td>390</td><td>318</td></tr>
+            <tr><td>64</td><td>3,661</td><td>2,662</td><td>2,112</td></tr>
+            <tr><td>128</td><td>6,298</td><td>4,915</td><td>3,853</td></tr>
+            <tr><td>256</td><td>10,214</td><td>8,192</td><td>6,246</td></tr>
+            <tr><td>512</td><td>13,773</td><td>12,390</td><td>8,550</td></tr>
+            <tr><td>768</td><td>15,514</td><td><strong>14,899</strong></td><td><strong>9,600</strong></td></tr>
+            <tr><td>1,024</td><td><strong>16,794</strong></td><td>—</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="method-title">
+      <div class="section-heading">
+        <div class="section-title">
+          <div class="eyebrow">Audit boundary</div>
+          <h2 id="method-title">Methods and receipts</h2>
+        </div>
+        <p class="section-note">H100 measurements bind to rvLLM source <strong>afcad6c0145</strong>, immutable model revision <strong>448f20b6eb8b</strong>, and the receipt hashes linked below.</p>
+      </div>
+
+      <div class="method-grid">
+        <div class="method-item">
+          <h3>TPU limits</h3>
+          <p>Cached timing discarded XLA compilation and synchronized with <strong>block_until_ready()</strong>. Perplexity values—E4B 5.87, 26B-A4B 90.21, 31B 24.76—use one 86-token passage with BOS, not a corpus-scale evaluation. This snapshot has no raw receipts or immutable model revisions.</p>
+        </div>
+        <div class="method-item">
+          <h3>H100 boundary</h3>
+          <p>The sweep measures a synthetic fixed decode state, not prompt processing, sampling, or an end-to-end request. Separate exact-ZIP gates cover full-model serving, authentication, runtime ABI, policy, and compute-sanitizer.</p>
+        </div>
+        <div class="method-item">
+          <h3>H100 receipts</h3>
+          <ul>
+            <li class="receipt-link"><a href="receipts/h100-2026-07-13/validation-summary.json">Validation summary</a><span class="pending">pass</span></li>
+            <li class="receipt-link"><a href="receipts/h100-2026-07-13/benchmark-samples.jsonl">Fresh samples</a><span class="pending">30 / 30</span></li>
+            <li class="receipt-link"><a href="receipts/h100-2026-07-13/model-manifest.json">Model manifest</a><span class="pending">pinned</span></li>
+            <li class="receipt-link"><a href="receipts/h100-2026-07-13/SHA256SUMS">Receipt checksums</a><span class="pending">verified</span></li>
+            <li class="receipt-link"><a href="https://github.com/solidsf-inc/rvLLM/releases/tag/v0.3.0">Kernel release</a><span class="pending">v0.3.0</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>rvLLM benchmark report · measurements, limits, receipts.</div>
+      <div><a href="https://github.com/solidsf-inc/rvLLM">GitHub</a> · <a href="arch.md">Architecture</a></div>
+    </footer>
+  </main>
 </body>
 </html>

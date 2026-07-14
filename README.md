@@ -8,7 +8,7 @@ rvLLM keeps model loading, scheduling, KV-cache management, sampling, and servin
 
 | Backend | Status |
 | --- | --- |
-| NVIDIA CUDA | Primary runtime source. Build and validate a complete kernel bundle on the target GPU before serving. |
+| NVIDIA CUDA | H100 / sm_90 validated with the immutable v0.3.0 kernel bundle. Other targets are not asserted. |
 | Apple Metal | Backend source behind `metal`; end-to-end generation and parity are not asserted by this release. |
 | Vision | Integration source is present; end-to-end Gemma 4 vision is not asserted by this release. |
 | XLA/TPU | Experimental operator and conformance work only; no TPU server is shipped in this release. |
@@ -46,7 +46,10 @@ Run `rvllm-server --help` for the model, kernel, authentication, and backend set
 The server binds to loopback and exposes:
 
 - `GET /health`
+- `GET /status`
+- `GET /metrics`
 - `GET /v1/models`
+- `POST /v1/completions`
 - `POST /v1/chat/completions`
 
 Generation is non-streaming; requests with `stream=true` or `stop` are rejected.
@@ -80,7 +83,9 @@ RVLLM_RUN_CUDA_CONTEXT_SMOKE=1 cargo test --locked --manifest-path v3/Cargo.toml
 
 ## Benchmarks
 
-[`docs/bench.html`](docs/bench.html) preserves the project-reported TPU snapshot and states its provenance limits. The prior H100 rows were removed after harness revalidation; replacements require the exact rvLLM commit, model revision, hardware, precision, inputs, warmup, synchronization, token accounting, parity result, and raw samples.
+[`docs/bench.html`](docs/bench.html) reports a 30-sample H100 sweep from the exact v0.3.0 kernel ZIP and preserves the project-reported TPU snapshot with its provenance limits. H100 results bind the source, model revision, archive, kernel manifest, policy, raw samples, runtime ABI, server smoke, and sanitizer receipts.
+
+![H100 Gemma 4 31B fixed-state decode throughput](docs/rvllm-h100-throughput.png)
 
 ## License
 

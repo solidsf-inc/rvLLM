@@ -4,6 +4,13 @@ This directory builds the PTX and shared libraries loaded by the rvLLM CUDA
 runtime. Generated artifacts are not committed; each PTX bundle includes a
 manifest with its source revision, ABI, byte length, and SHA-256 digest.
 
+The validated H100 / sm_90 bundle is attached to the
+[v0.3.0 release](https://github.com/solidsf-inc/rvLLM/releases/tag/v0.3.0).
+Its archive SHA-256 is
+`97a8a8de4218733514e493193c4f3182ff5b309bf9225fd135e9b64231e6d250`;
+runtime and benchmark receipts are in
+[`docs/receipts/h100-2026-07-13/`](../docs/receipts/h100-2026-07-13/).
+
 ## PTX bundle
 
 Install a CUDA toolkit that supports the target architecture, then build from
