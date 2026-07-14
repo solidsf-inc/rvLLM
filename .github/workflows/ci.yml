@@ -37,8 +37,23 @@ jobs:
           cargo +"$RUST_TOOLCHAIN" metadata --locked --format-version 1 > /tmp/rvllm-cargo-metadata.json
           test -s /tmp/rvllm-cargo-metadata.json
           cargo +"$RUST_TOOLCHAIN" install cargo-cyclonedx --version 0.5.9 --locked
-          cargo +"$RUST_TOOLCHAIN" cyclonedx --format json --all
-          find . -name bom.json -type f -size +0c -print -quit | grep -q .
+          cargo +"$RUST_TOOLCHAIN" cyclonedx --format json --target all --all
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          metadata = json.loads(Path("/tmp/rvllm-cargo-metadata.json").read_text())
+          packages = {package["id"]: package for package in metadata["packages"]}
+          for package_id in metadata["workspace_members"]:
+              package = packages[package_id]
+              path = Path(package["manifest_path"]).with_name(
+                  f'{package["name"]}.cdx.json'
+              )
+              if not path.is_file() or path.stat().st_size == 0:
+                  raise SystemExit(f"missing SBOM: {path}")
+              if json.loads(path.read_text()).get("bomFormat") != "CycloneDX":
+                  raise SystemExit(f"invalid SBOM: {path}")
+          PY
       - name: Advisory and license policy
         run: |
           cargo +"$RUST_TOOLCHAIN" install cargo-audit --version 0.22.2 --locked
