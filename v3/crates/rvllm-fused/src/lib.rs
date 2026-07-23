@@ -4,6 +4,7 @@
 //! `launch_raw` remains available for kernels whose full contract is enforced
 //! by the higher-level runtime wrapper.
 
+pub mod fp8;
 pub mod gemma4_launcher;
 pub mod gemma4_reference;
 pub mod launch_raw;

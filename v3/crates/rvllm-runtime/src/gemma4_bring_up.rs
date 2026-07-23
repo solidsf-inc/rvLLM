@@ -1819,44 +1819,6 @@ impl Gemma4Bringup {
         let residual_ptr = residual.device_ptr();
         let kernels = self.layer_kernels();
 
-        // GEMM plans — uniform shapes across all layers (the sliding/global
-        // distinction is a runtime head reshape, weight dims are identical).
-        // Use the sliding-layer dims for the plan since those are the common case.
-        let q_dim_s = (arch.num_attention_heads * arch.head_dim_sliding) as u32;
-        let kv_dim_s = (arch.num_kv_heads_sliding * arch.head_dim_sliding) as u32;
-        let qkv_rows_s = q_dim_s + 2 * kv_dim_s;
-        use rvllm_cutlass::Fp8GemmPlan;
-        let _gemm_plans = Gemma4GemmPlans {
-            qkv: Fp8GemmPlan::from_policy(
-                &self.policy,
-                num_seqs,
-                qkv_rows_s,
-                hidden,
-                rvllm_core::DType::Fp8E4M3,
-            )?,
-            o: Fp8GemmPlan::from_policy_residual(
-                &self.policy,
-                num_seqs,
-                hidden,
-                q_dim_s,
-                rvllm_core::DType::Fp8E4M3,
-            )?,
-            gate_up: Fp8GemmPlan::from_policy(
-                &self.policy,
-                num_seqs,
-                2 * inter,
-                hidden,
-                rvllm_core::DType::Fp8E4M3,
-            )?,
-            down: Fp8GemmPlan::from_policy_residual(
-                &self.policy,
-                num_seqs,
-                hidden,
-                inter,
-                rvllm_core::DType::Fp8E4M3,
-            )?,
-        };
-
         let e4b_rt = self.e4b.as_ref();
         // INT4 decoder runtime + w4a8 lib for routing the per-layer GEMMs.
         // Both `Some` only on the E4B+INT4 path; `None` otherwise (FP8).
@@ -1901,7 +1863,7 @@ impl Gemma4Bringup {
                     rms_eps: arch.rms_norm_eps,
                     layer_type: lt,
                     sliding_window: layer_sliding_window,
-                    f16_kv: use_f16_kv,
+                    f16_kv: f16_only || std::env::var("RVLLM_F16_KV").map_or(false, |v| v != "0"),
                     num_hidden_layers: arch.num_hidden_layers as u32,
                     layer_idx: layer_idx as u32,
                     ple_dim: arch.hidden_size_per_layer_input as u32,
@@ -2596,41 +2558,6 @@ impl Gemma4Bringup {
         let residual_ptr = residual.device_ptr();
         let kernels = self.layer_kernels();
 
-        let q_dim_s = (arch.num_attention_heads * arch.head_dim_sliding) as u32;
-        let kv_dim_s = (arch.num_kv_heads_sliding * arch.head_dim_sliding) as u32;
-        let qkv_rows_s = q_dim_s + 2 * kv_dim_s;
-        use rvllm_cutlass::Fp8GemmPlan;
-        let _gemm_plans = Gemma4GemmPlans {
-            qkv: Fp8GemmPlan::from_policy(
-                &self.policy,
-                num_seqs,
-                qkv_rows_s,
-                hidden,
-                rvllm_core::DType::Fp8E4M3,
-            )?,
-            o: Fp8GemmPlan::from_policy_residual(
-                &self.policy,
-                num_seqs,
-                hidden,
-                q_dim_s,
-                rvllm_core::DType::Fp8E4M3,
-            )?,
-            gate_up: Fp8GemmPlan::from_policy(
-                &self.policy,
-                num_seqs,
-                2 * inter,
-                hidden,
-                rvllm_core::DType::Fp8E4M3,
-            )?,
-            down: Fp8GemmPlan::from_policy_residual(
-                &self.policy,
-                num_seqs,
-                hidden,
-                inter,
-                rvllm_core::DType::Fp8E4M3,
-            )?,
-        };
-
         let e4b_rt = self.e4b.as_ref();
         // INT4 decoder runtime + w4a8 lib (Some only on the E4B+INT4 path).
         let int4_rt = self.e4b_int4.as_ref();
@@ -2677,7 +2604,7 @@ impl Gemma4Bringup {
                     rms_eps: arch.rms_norm_eps,
                     layer_type: lt,
                     sliding_window: layer_sliding_window,
-                    f16_kv: f16_only || std::env::var("RVLLM_F16_KV").map_or(false, |v| v != "0"),
+                    f16_kv: use_f16_kv,
                     num_hidden_layers: arch.num_hidden_layers as u32,
                     layer_idx: layer_idx as u32,
                     ple_dim,

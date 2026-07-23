@@ -1,6 +1,6 @@
 //! Validated CPU references for fused-kernel parity tests.
 
-pub const FP8_E4M3_MAX: f32 = 448.0;
+pub use crate::fp8::FP8_E4M3_MAX;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReferenceError(pub &'static str);
@@ -312,30 +312,17 @@ pub fn rope_ref(
     Ok(())
 }
 
-pub(crate) fn f32_to_fp8_e4m3(value: f32) -> u8 {
-    let sign = ((value.to_bits() >> 24) as u8) & 0x80;
-    if value.is_nan() {
-        return sign | 0x7f;
-    }
-    if value == 0.0 {
-        return sign;
-    }
-    let target = value.abs().min(FP8_E4M3_MAX);
-    let mut best_code = 0u8;
-    let mut best_distance = f32::INFINITY;
-    for code in 0u8..=0x7e {
-        let decoded = fp8_e4m3_positive_to_f32(code);
-        let distance = (decoded - target).abs();
-        if distance < best_distance
-            || (distance == best_distance && code & 1 == 0 && best_code & 1 == 1)
-        {
-            best_code = code;
-            best_distance = distance;
-        }
-    }
-    sign | best_code
-}
+// ---------------------------------------------------------------------------
+// f32 → FP8 E4M3 round-half-to-even with saturation to ±448. The canonical
+// encoder lives in `crate::fp8` so this and the Gemma 4 reference share one
+// implementation that matches the CUDA kernel's __NV_SATFINITE rounding.
+// ---------------------------------------------------------------------------
 
+pub(crate) use crate::fp8::f32_to_fp8_e4m3;
+
+/// Decode a positive FP8 E4M3 code to f32 (test support: round-trip identity
+/// against the canonical `crate::fp8` encoder).
+#[cfg(test)]
 fn fp8_e4m3_positive_to_f32(code: u8) -> f32 {
     let exponent = (code >> 3) & 0x0f;
     let mantissa = code & 0x07;
@@ -383,10 +370,13 @@ mod tests {
     }
 
     #[test]
-    fn fp8_preserves_negative_zero_and_nan_sign() {
-        assert_eq!(f32_to_fp8_e4m3(-0.0), 0x80);
+    fn fp8_canonicalizes_zero_and_nan() {
+        // Canonical `crate::fp8` contract: every zero result is the one
+        // deterministic +0 byte, and every NaN is canonical 0x7f — matching
+        // the shared encoder used by the loader and Gemma 4 references.
+        assert_eq!(f32_to_fp8_e4m3(-0.0), 0x00);
         assert_eq!(f32_to_fp8_e4m3(f32::NAN), 0x7f);
-        assert_eq!(f32_to_fp8_e4m3(f32::from_bits(0xffc0_0000)), 0xff);
+        assert_eq!(f32_to_fp8_e4m3(f32::from_bits(0xffc0_0000)), 0x7f);
     }
 
     #[test]
