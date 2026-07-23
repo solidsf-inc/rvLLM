@@ -1686,7 +1686,7 @@ impl Gemma4Bringup {
         let gemm_f32_tmp =
             arena.region("gemm_f32_tmp", (num_seqs * gemm_f32_max_n * 4) as usize, 16)?;
 
-        let use_f16_kv = f16_only || std::env::var("RVLLM_F16_KV").map_or(true, |v| v != "0");
+        let use_f16_kv = f16_only || std::env::var("RVLLM_F16_KV").map_or(false, |v| v != "0");
         let kv_bytes_per_elem: u32 = if use_f16_kv { 2 } else { 1 };
         // Sliding-layer slots must remain inside the ring allocation.
         // at every t the rope writes; the old cap sliding_blocks = sliding_window/block_size = 32
@@ -2451,7 +2451,7 @@ impl Gemma4Bringup {
         let ple_gate = arena.region("ple_gate_ppl", (ple_gate_elems * 2) as usize, 16)?;
 
         let f16_only = std::env::var("RVLLM_F16_ONLY").map_or(false, |v| v == "1");
-        let use_f16_kv = f16_only || std::env::var("RVLLM_F16_KV").map_or(true, |v| v != "0");
+        let use_f16_kv = f16_only || std::env::var("RVLLM_F16_KV").map_or(false, |v| v != "0");
         let sync_layers = std::env::var("RVLLM_SYNC_LAYERS").ok().as_deref() == Some("1");
         let kv_bytes_per_elem: u32 = if use_f16_kv { 2 } else { 1 };
 
@@ -2677,7 +2677,7 @@ impl Gemma4Bringup {
                     rms_eps: arch.rms_norm_eps,
                     layer_type: lt,
                     sliding_window: layer_sliding_window,
-                    f16_kv: f16_only || std::env::var("RVLLM_F16_KV").map_or(true, |v| v != "0"),
+                    f16_kv: f16_only || std::env::var("RVLLM_F16_KV").map_or(false, |v| v != "0"),
                     num_hidden_layers: arch.num_hidden_layers as u32,
                     layer_idx: layer_idx as u32,
                     ple_dim,
@@ -3604,7 +3604,7 @@ impl Gemma4Bringup {
 
         let sliding_blocks =
             ((arch.sliding_window_size as u32).saturating_add(block_size - 1) / block_size).max(1);
-        let use_f16_kv = std::env::var("RVLLM_F16_KV").map_or(true, |v| v != "0")
+        let use_f16_kv = std::env::var("RVLLM_F16_KV").map_or(false, |v| v != "0")
             && !use_fast_prefill
             && !spec_decode;
         let kv_bytes_per_elem: u32 = if use_f16_kv { 2 } else { 1 };
