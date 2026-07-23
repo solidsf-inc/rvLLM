@@ -16,3 +16,8 @@ path = "src/lib.rs"
 
 [dev-dependencies]
 toml = "0.9"
+
+# Host-only golden-vector identity invariants (tests/identity.rs). No cuda
+# feature: these import the pure-Rust reference fns only.
+rvllm-sampling = { workspace = true }
+rvllm-fused = { workspace = true }

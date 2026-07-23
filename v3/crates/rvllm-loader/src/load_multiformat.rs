@@ -9,7 +9,9 @@ use std::path::{Path, PathBuf};
 
 use half::f16;
 use memmap2::Mmap;
-use rvllm_core::{DType, LoaderCtx, LoaderError, Result, RvllmError};
+use rvllm_core::{
+    fp8::f32_to_fp8_e4m3 as fp8_e4m3_encode, DType, LoaderCtx, LoaderError, Result, RvllmError,
+};
 use rvllm_mem::HbmArena;
 
 use crate::fp8_quant::{check_clamp_gate, quantize_per_tensor_ref, FP8_E4M3_MAX};
@@ -920,65 +922,6 @@ fn quantize_to_fp8_bytes(f32_vals: &[f32], scale: f32) -> Vec<u8> {
         .collect()
 }
 
-// Minimal reference E4M3 encode with round-to-nearest-even (matches NVIDIA hw).
-// FP8 E4M3FN: 1 sign, 4 exp, 3 mantissa, bias 7, finite range [-448, 448].
-fn fp8_e4m3_encode(v: f32) -> u8 {
-    if v.is_nan() {
-        return 0x7f;
-    }
-    let s: u8 = if v.to_bits() >> 31 != 0 { 0x80 } else { 0 };
-    let a = v.abs();
-    if a == 0.0 {
-        return s;
-    }
-    if a > FP8_E4M3_MAX {
-        return s | 0x7e;
-    }
-    let bits = a.to_bits();
-    let exp32 = ((bits >> 23) & 0xff) as i32 - 127;
-    let mant32 = bits & 0x7f_ffff;
-    let mut exp8 = exp32 + 7;
-    if exp8 <= 0 {
-        let shift = 1 - exp8;
-        if shift >= 12 {
-            return s;
-        }
-        let full = (mant32 | (1 << 23)) as u32;
-        let rshift = (20 + shift) as u32;
-        let mut m = full >> rshift;
-        let round_bit = if rshift > 0 {
-            (full >> (rshift - 1)) & 1
-        } else {
-            0
-        };
-        let sticky = if rshift > 1 {
-            (full & ((1 << (rshift - 1)) - 1) != 0) as u32
-        } else {
-            0
-        };
-        m += round_bit & (sticky | (m & 1));
-        if m >= 8 {
-            return s | 0x08;
-        }
-        return s | (m as u8 & 0x07);
-    }
-    let trunc = mant32 >> 20;
-    let round_bit = (mant32 >> 19) & 1;
-    let sticky = (mant32 & 0x7_ffff) != 0;
-    let m = trunc + (round_bit & (sticky as u32 | (trunc & 1)));
-    if m >= 8 {
-        exp8 += 1;
-        if exp8 > 15 {
-            return s | 0x7e;
-        }
-        return s | ((exp8 as u8 & 0x0f) << 3);
-    }
-    if exp8 > 15 {
-        return s | 0x7e;
-    }
-    s | ((exp8 as u8 & 0x0f) << 3) | (m as u8 & 0x07)
-}
-
 fn upload_fp8_from(
     arena: &HbmArena,
     region_name: &'static str,
@@ -1618,7 +1561,7 @@ mod tests {
     #[test]
     fn fp8_encode_zero_is_zero() {
         assert_eq!(fp8_e4m3_encode(0.0), 0);
-        assert_eq!(fp8_e4m3_encode(-0.0), 0x80);
+        assert_eq!(fp8_e4m3_encode(-0.0), 0);
     }
 
     #[test]

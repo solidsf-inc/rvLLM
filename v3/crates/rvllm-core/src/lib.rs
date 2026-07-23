@@ -13,6 +13,7 @@ pub mod config;
 pub mod dtype;
 pub mod env;
 pub mod error;
+pub mod fp8;
 pub mod ids;
 pub mod shape;
 

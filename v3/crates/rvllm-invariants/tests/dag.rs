@@ -82,7 +82,12 @@ fn allowed_deps() -> BTreeMap<&'static str, BTreeSet<&'static str>> {
             ]),
         ),
         ("rvllm-mcp", set(&[])),
-        ("rvllm-invariants", set(&[])),
+        // rvllm-invariants is a CI-only leaf (nothing depends on it). Its only
+        // edges are dev-dependencies pulled in by tests/identity.rs to assert
+        // the host reference fns against golden vectors — both are already-
+        // permitted DAG nodes, so the leaf consuming them as test-only deps
+        // adds no cycle.
+        ("rvllm-invariants", set(&["rvllm-sampling", "rvllm-fused"])),
     ])
 }
 
@@ -105,7 +110,7 @@ fn crate_budgets() -> BTreeMap<&'static str, usize> {
         ("rvllm-imageio", 600),
         ("rvllm-metadata", 600),
         ("rvllm-graph", 700),
-        ("rvllm-invariants", 400),
+        ("rvllm-invariants", 600),
     ])
 }
 

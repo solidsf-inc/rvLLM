@@ -20,7 +20,8 @@
 //!
 //! The session always runs the FP8 KV cache, the only layout supported by
 //! the speculative verification path.
-//! `RVLLM_F16_KV=1` is rejected at construction rather than silently
+//! Any nonzero `RVLLM_F16_KV` value is rejected at construction rather
+//! than silently
 //! ignored. The emitted token stream is bit-identical to
 //! `run_generate` under `RVLLM_F16_KV=0`: the kernels and values are the
 //! same; only the fixed metadata source regions differ.
@@ -137,7 +138,7 @@ impl Gemma4ServeSession {
     /// the decode/spec configuration from env. Must run at engine init,
     /// before anything else checkpoint/restores the arena.
     pub fn new(bu: &Gemma4Bringup, max_new_cap: usize) -> Result<Self> {
-        if std::env::var("RVLLM_F16_KV").ok().as_deref() == Some("1") {
+        if std::env::var("RVLLM_F16_KV").map_or(false, |value| value != "0") {
             return Err(RvllmError::config(
                 ConfigError::InvalidField {
                     name: "RVLLM_F16_KV",
