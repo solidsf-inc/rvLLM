@@ -88,16 +88,18 @@ python3 scripts/vast_ptx_tuner.py --mode dry-run --depth 1000 --width 100 \
   --emit-bundle ./artifacts/vast-ptx-tuner
 ```
 
-See [`docs/ptx-ultra-tuner.md`](docs/ptx-ultra-tuner.md) and the interactive [`docs/ptx-tuner-1000d-100w.html`](docs/ptx-tuner-1000d-100w.html) report for the `1,000D x 100W` architecture, uniform hardware descriptor, and zero-spill/producer-consumer invariants.
+See [`docs/ptx-ultra-tuner.md`](docs/ptx-ultra-tuner.md), the [`docs/wiki/`](docs/wiki/Home.md) pages ([PTX-CUDA Ultra Kernel Tuner](docs/wiki/PTX-CUDA-Ultra-Kernel-Tuner.md), [Vast.ai Fleet Dispatch](docs/wiki/Vast-AI-Fleet-Dispatch.md), [Hardware Support Matrix](docs/wiki/Hardware-Support-Matrix.md)), [`AGENTS.md`](AGENTS.md), and the interactive [`docs/ptx-tuner-1000d-100w.html`](docs/ptx-tuner-1000d-100w.html) report for the `1,000D x 100W` architecture, uniform hardware descriptor, and zero-spill/producer-consumer invariants.
 
 ## Layout
 
-- `v3/crates/` — Rust runtime, server, loader, scheduler, sampling, vision, and backends
+- `v3/crates/` — Rust runtime, server, loader, scheduler, sampling, vision, PTX-CUDA `1,000D x 100W` tuner (`rvllm-cutlass::ptx_tuner`), and backends
 - `v3/kernels/` — runtime CUDA kernels
 - `kernels/` — accelerator build and artifact tooling
+- `scripts/` — local validation (`validate-local.sh`) and Vast.ai GPU fleet dispatcher (`vast_ptx_tuner.py`, `remote_gpu_eval.sh`)
 - `tpu/` — experimental XLA/TPU operator work
-- `tests/` — API and parity checks
-- `docs/` — architecture and measured-result methodology
+- `tests/` — API, parity, and Vast.ai PTX tuner checks
+- `docs/` — architecture, [`docs/wiki/`](docs/wiki/Home.md), and measured-result methodology
+- `AGENTS.md` — contributor and agent workflow guide
 
 ## Benchmarks
 

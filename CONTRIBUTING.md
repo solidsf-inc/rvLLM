@@ -6,10 +6,11 @@ Work from a branch and keep changes scoped. The maintained Rust workspace is
 Before opening a pull request:
 
 ```bash
-cargo fmt --manifest-path v3/Cargo.toml --all -- --check
-cargo check --manifest-path v3/Cargo.toml --workspace --all-targets --locked
-cargo test --manifest-path v3/Cargo.toml --workspace --locked
+./scripts/validate-local.sh
+python3 tests/test_vast_ptx_tuner.py
 ```
+
+See [`AGENTS.md`](AGENTS.md) and [`docs/wiki/Home.md`](docs/wiki/Home.md) for the complete workspace DAG rules, `rvllm_ptx_tuner` (`1,000D x 100W`) workflow, and Vast.ai fleet dispatch guide.
 
 CUDA and Metal changes also need real-device tests. Include the hardware,
 driver/toolchain versions, exact source SHA, command, raw output, and failures.

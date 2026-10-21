@@ -14,3 +14,12 @@ Launch wrappers must check every extent and leading dimension, keep descriptor
 lifetimes through completion, and fail closed on unavailable epilogues or
 unsupported schedules. Reference parity and eager/graph tests are required for
 every policy entry before it becomes a default.
+
+## Evolutionary PTX-CUDA Schedule Synthesis (`rvllm_cutlass::ptx_tuner`)
+
+`rvllm_cutlass::ptx_tuner` extends `rvllm-cutlass` with a `1,000D x 100W`
+(`100,000` evaluations per workload shape) PTX-CUDA schedule tuner across
+`sm_70` through `sm_121a`. Every synthesized winner is validated against
+`MatchedPair` producer-consumer barrier rules and zero register-spill bounds,
+then exported via `build_authenticated_policy` into a SHA-256 authenticated
+`Policy` (`rvllm.cutlass.policy.v1`).
