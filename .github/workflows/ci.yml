@@ -182,7 +182,13 @@ jobs:
             scripts/hf_dump_intermediates.py \
             scripts/generate_readme_table.py \
             scripts/test_fp8_encode.py \
-            tests/api_compat/test_openai_client.py
+            scripts/vast_ptx_tuner.py \
+            tests/api_compat/test_openai_client.py \
+            tests/test_vast_ptx_tuner.py
+      - name: Vast.ai PTX tuner unit tests and shell syntax
+        run: |
+          bash -n scripts/remote_gpu_eval.sh
+          python3 tests/test_vast_ptx_tuner.py
 
   chat-client:
     runs-on: ubuntu-24.04
