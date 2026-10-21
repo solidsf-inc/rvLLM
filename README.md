@@ -72,6 +72,24 @@ RVLLM_RUN_CUDA_CONTEXT_SMOKE=1 cargo test --locked --manifest-path v3/Cargo.toml
   -p rvllm-mem --features cuda --test cuda_context_smoke -- --ignored
 ```
 
+## Jesse PTX-CUDA Ultra Kernel Tuner (`1,000D x 100W`)
+
+[`rvllm-cutlass::ptx_tuner`](docs/ptx-ultra-tuner.md) provides a Jesse-operated PTX-CUDA evolutionary schedule synthesis engine that evaluates `100,000` schedule candidates (`1,000` generations x `100` parallel beam workers) per workload shape and emits self-contained PTX 8.7 + CUDA C++ `.cu` kernels plus a SHA-256 authenticated `Policy` JSON table across `sm_70` (Volta) through `sm_121a` (Blackwell GB10):
+
+```bash
+# Run a 1,000D x 100W PTX-CUDA tuning campaign across all hardware targets:
+cargo run --release --locked --manifest-path v3/Cargo.toml \
+  -p rvllm-cutlass --bin rvllm_ptx_tuner -- \
+  --depth 1000 --width 100 \
+  --emit-bundle ./artifacts/ptx-tuner
+
+# Dispatch live nvcc / ptxas / NVRTC hardware verification on Vast.ai GPUs:
+python3 scripts/vast_ptx_tuner.py --mode dry-run --depth 1000 --width 100 \
+  --emit-bundle ./artifacts/vast-ptx-tuner
+```
+
+See [`docs/ptx-ultra-tuner.md`](docs/ptx-ultra-tuner.md) and the interactive [`docs/ptx-tuner-1000d-100w.html`](docs/ptx-tuner-1000d-100w.html) report for the `1,000D x 100W` architecture, uniform hardware descriptor, and zero-spill/producer-consumer invariants.
+
 ## Layout
 
 - `v3/crates/` — Rust runtime, server, loader, scheduler, sampling, vision, and backends

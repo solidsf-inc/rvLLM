@@ -14,6 +14,7 @@ pub mod cublaslt;
 pub mod lib_so;
 pub mod plan;
 pub mod policy;
+pub mod ptx_tuner;
 pub mod schedule;
 pub mod variants;
 pub mod w4a8;

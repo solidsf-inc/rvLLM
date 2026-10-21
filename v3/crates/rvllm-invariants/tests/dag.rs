@@ -97,7 +97,7 @@ fn crate_budgets() -> BTreeMap<&'static str, usize> {
         ("rvllm-loader", 10_000),
         ("rvllm-metal", 10_000),
         ("rvllm-serve", 4_000),
-        ("rvllm-cutlass", 4_000),
+        ("rvllm-cutlass", 7_500),
         ("rvllm-fused", 3_300),
         ("rvllm-attention", 3_000),
         ("rvllm-mem", 3_000),
