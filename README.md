@@ -74,6 +74,8 @@ RVLLM_RUN_CUDA_CONTEXT_SMOKE=1 cargo test --locked --manifest-path v3/Cargo.toml
 
 ## PTX-CUDA Ultra Kernel Tuner (`1,000D x 100W`)
 
+![rvLLM PTX-CUDA Ultra Kernel Tuner 1,000D x 100W Infographic](docs/rvllm-ptx-tuner-1000d-100w-light-infographic.png)
+
 [`rvllm-cutlass::ptx_tuner`](docs/ptx-ultra-tuner.md) provides a standalone PTX-CUDA evolutionary schedule synthesis engine that evaluates `100,000` schedule candidates (`1,000` generations x `100` parallel beam workers) per workload shape and emits self-contained PTX 8.7 + CUDA C++ `.cu` kernels plus a SHA-256 authenticated `Policy` JSON table across `sm_70` (Volta) through `sm_121a` (Blackwell GB10):
 
 ```bash

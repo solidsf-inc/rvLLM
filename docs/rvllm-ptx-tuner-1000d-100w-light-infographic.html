@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1600, initial-scale=1">
+  <title>solidSF · rvLLM 1,000D x 100W PTX-CUDA Ultra Kernel Tuner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ssf-bg: #f6f7f9;
+      --ssf-panel: #ffffff;
+      --ssf-raised: #eef1f5;
+      --ssf-border: #cfd6e0;
+      --ssf-border-strong: #0f141c;
+      --ssf-ink: #0f141c;
+      --ssf-muted: #434e61;
+      --ssf-faint: #6c778b;
+      --ssf-live: #007a60;
+      --ssf-live-bg: #e6f4f0;
+      --ssf-data-1: #2563eb;
+      --ssf-data-1-bg: #eff6ff;
+      --ssf-data-2: #0891b2;
+      --ssf-warn: #d97706;
+      --ssf-warn-bg: #fef3c7;
+      --font-ui: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      border-radius: 0 !important;
+    }
+
+    html, body {
+      width: 1600px;
+      height: 1120px;
+      overflow: hidden;
+      background: var(--ssf-bg);
+      color: var(--ssf-ink);
+      font-family: var(--font-ui);
+      font-variant-numeric: tabular-nums;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
+
+    .poster {
+      width: 1600px;
+      height: 1120px;
+      border-top: 8px solid var(--ssf-ink);
+      padding: 20px 32px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    /* Top Masthead */
+    .masthead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--ssf-border);
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--ssf-ink);
+    }
+
+    .brand-sep {
+      color: var(--ssf-faint);
+      font-weight: 400;
+    }
+
+    .brand-sub {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ssf-muted);
+      letter-spacing: -0.01em;
+    }
+
+    .masthead-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tag-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: var(--ssf-panel);
+      border: 1px solid var(--ssf-border);
+      color: var(--ssf-muted);
+    }
+
+    .tag-pill.live {
+      background: var(--ssf-live-bg);
+      border-color: var(--ssf-live);
+      color: var(--ssf-live);
+    }
+
+    .dot-square {
+      width: 6px;
+      height: 6px;
+      background: var(--ssf-live);
+      display: inline-block;
+    }
+
+    /* Hero + KPIs */
+    .hero-band {
+      display: grid;
+      grid-template-columns: 540px 1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .hero-copy {
+      background: var(--ssf-panel);
+      border: 1px solid var(--ssf-border);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+      color: var(--ssf-muted);
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+      color: var(--ssf-ink);
+      margin-bottom: 8px;
+    }
+
+    .lead {
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--ssf-muted);
+    }
+
+    .lead strong {
+      color: var(--ssf-ink);
+      font-weight: 700;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      background: var(--ssf-panel);
+      border: 1px solid var(--ssf-border);
+    }
+
+    .kpi-card {
+      padding: 14px 16px;
+      border-right: 1px solid var(--ssf-border);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .kpi-card:last-child {
+      border-right: none;
+    }
+
+    .kpi-kicker {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ssf-faint);
+    }
+
+    .kpi-val {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      color: var(--ssf-ink);
+      margin: 8px 0 6px;
+    }
+
+    .kpi-val.live {
+      color: var(--ssf-live);
+    }
+
+    .kpi-val.blue {
+      color: var(--ssf-data-1);
+    }
+
+    .kpi-sub {
+      font-size: 11.5px;
+      line-height: 1.35;
+      color: var(--ssf-muted);
+      font-weight: 500;
+    }
+
+    /* Middle Grid: Left = Architecture & Invariants, Right = Speedup Chart */
+    .mid-grid {
+      display: grid;
+      grid-template-columns: 650px 1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: var(--ssf-panel);
+      border: 1px solid var(--ssf-border);
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--ssf-border);
+      margin-bottom: 10px;
+    }
+
+    .panel-title {
+      font-size: 13.5px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--ssf-ink);
+      white-space: nowrap;
+    }
+
+    .panel-subtitle {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ssf-faint);
+      white-space: nowrap;
+    }
+
+    /* 5-Stage Loop */
+    .stages {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .stage-row {
+      display: grid;
+      grid-template-columns: 34px 185px 1fr;
+      align-items: center;
+      background: var(--ssf-bg);
+      border: 1px solid var(--ssf-border);
+      padding: 7px 10px;
+      gap: 10px;
+    }
+
+    .stage-num {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--ssf-panel);
+      background: var(--ssf-ink);
+      width: 24px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stage-row.active .stage-num {
+      background: var(--ssf-live);
+    }
+
+    .stage-name {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--ssf-ink);
+      letter-spacing: -0.01em;
+    }
+
+    .stage-desc {
+      font-size: 11.5px;
+      color: var(--ssf-muted);
+      line-height: 1.3;
+    }
+
+    .stage-desc code {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--ssf-ink);
+      background: var(--ssf-raised);
+      padding: 1px 4px;
+      border: 1px solid var(--ssf-border);
+    }
+
+    .invariants-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--ssf-border);
+    }
+
+    .inv-box {
+      background: var(--ssf-raised);
+      border: 1px solid var(--ssf-border);
+      padding: 6px 9px;
+    }
+
+    .inv-title {
+      font-size: 9.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ssf-ink);
+      margin-bottom: 3px;
+      white-space: nowrap;
+    }
+
+    .inv-code {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--ssf-live);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* Right Chart */
+    .chart-legend {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ssf-muted);
+      white-space: nowrap;
+    }
+
+    .leg-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .leg-swatch {
+      width: 12px;
+      height: 10px;
+      display: inline-block;
+    }
+
+    .bar-chart {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 165px 1fr 122px;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .bar-label {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--ssf-ink);
+    }
+
+    .bar-arch {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--ssf-muted);
+      background: var(--ssf-raised);
+      padding: 1px 5px;
+      border: 1px solid var(--ssf-border);
+    }
+
+    .bar-track {
+      position: relative;
+      height: 22px;
+      background: var(--ssf-bg);
+      border: 1px solid var(--ssf-border);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .vllm-baseline-line {
+      position: absolute;
+      left: 11.11%; /* 1.0x out of 9.0x scale */
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--ssf-warn);
+      z-index: 3;
+    }
+
+    .bar-fill-peak {
+      height: 8px;
+      background: var(--ssf-live);
+    }
+
+    .bar-fill-mean {
+      height: 7px;
+      background: var(--ssf-data-1);
+    }
+
+    .bar-stats {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-align: right;
+      color: var(--ssf-ink);
+      white-space: nowrap;
+    }
+
+    .bar-stats .peak {
+      color: var(--ssf-live);
+      font-weight: 800;
+    }
+
+    .bar-stats .mean {
+      color: var(--ssf-data-1);
+    }
+
+    .chart-axis {
+      display: flex;
+      justify-content: space-between;
+      padding-left: 175px;
+      padding-right: 132px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ssf-faint);
+      border-top: 1px solid var(--ssf-border);
+      padding-top: 4px;
+    }
+
+    /* Bottom Hardware Matrix Table */
+    .table-panel {
+      background: var(--ssf-panel);
+      border: 1px solid var(--ssf-border);
+      padding: 12px 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    th {
+      text-align: right;
+      padding: 6px 6px;
+      font-size: 9.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ssf-muted);
+      background: var(--ssf-raised);
+      border-bottom: 2px solid var(--ssf-ink);
+      border-top: 1px solid var(--ssf-border);
+      white-space: nowrap;
+    }
+
+    th:first-child,
+    th:nth-child(2),
+    th:nth-child(3) {
+      text-align: left;
+    }
+
+    td {
+      padding: 5.5px 6px;
+      border-bottom: 1px solid var(--ssf-border);
+      text-align: right;
+      color: var(--ssf-ink);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    td:first-child,
+    td:nth-child(2),
+    td:nth-child(3) {
+      text-align: left;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .mono-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ssf-ink);
+      background: var(--ssf-raised);
+      padding: 1px 6px;
+      border: 1px solid var(--ssf-border);
+    }
+
+    .isa-cell {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--ssf-muted);
+    }
+
+    .val-strong {
+      font-weight: 800;
+      color: var(--ssf-ink);
+    }
+
+    .val-live {
+      font-weight: 800;
+      color: var(--ssf-live);
+    }
+
+    .val-blue {
+      font-weight: 800;
+      color: var(--ssf-data-1);
+    }
+
+    .val-muted {
+      color: var(--ssf-faint);
+    }
+
+    .pass-badge {
+      display: inline-block;
+      padding: 2px 7px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: var(--ssf-live-bg);
+      color: var(--ssf-live);
+      border: 1px solid var(--ssf-live);
+    }
+
+    /* Footer */
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--ssf-muted);
+      padding-top: 4px;
+    }
+
+    .footer code {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      background: var(--ssf-panel);
+      padding: 2px 6px;
+      border: 1px solid var(--ssf-border);
+      color: var(--ssf-ink);
+    }
+  </style>
+</head>
+<body>
+  <main class="poster">
+    <!-- Masthead -->
+    <header class="masthead">
+      <div class="brand-row">
+        <span class="brand-logo">solidSF</span>
+        <span class="brand-sep">/</span>
+        <span class="brand-sub">rvLLM v0.3.0 — Standalone PTX-CUDA Ultra Kernel Tuner (1,000D × 100W)</span>
+      </div>
+      <div class="masthead-right">
+        <span class="tag-pill">github.com/solidsf-inc/rvLLM</span>
+        <span class="tag-pill">PTX ISA 8.7 · CUDA C++17</span>
+        <span class="tag-pill live"><span class="dot-square"></span>0 Spills · SHA-256 Policy Verified</span>
+      </div>
+    </header>
+
+    <!-- Hero & 5 KPI Strip -->
+    <section class="hero-band">
+      <div class="hero-copy">
+        <div>
+          <div class="eyebrow">EVOLUTIONARY GPU SCHEDULE SYNTHESIS</div>
+          <h1>1,000D × 100W PTX-CUDA Tuner</h1>
+          <p class="lead">
+            Replaces vLLM Python dispatch overhead and static tile heuristics with <strong>100,000 evolutionary schedule evaluations per workload shape</strong> across a single uniform <strong>HardwareDescriptor</strong> from Volta (<strong>sm_70</strong>) through Blackwell Ultra (<strong>sm_103a</strong>) and DGX Spark (<strong>sm_121a</strong>).
+          </p>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-kicker">SEARCH TOPOLOGY</div>
+          <div class="kpi-val">8.10M</div>
+          <div class="kpi-sub">Total schedules evaluated (1,000D × 100W × 81 shapes)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-kicker">PEAK SPEEDUP VS. VLLM</div>
+          <div class="kpi-val live">8.46×</div>
+          <div class="kpi-sub">GB300 sm_103a (8.00× B200 · 6.04× H100 SXM5)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-kicker">FLEET MEAN SPEEDUP</div>
+          <div class="kpi-val blue">3.06×</div>
+          <div class="kpi-sub">Geomean across all 9 GPU architectures &amp; 9 LLM ops</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-kicker">REGISTER SPILL GATE</div>
+          <div class="kpi-val live">0 B</div>
+          <div class="kpi-sub">0 bytes spill stores / 0 bytes spill loads (ptxas -v)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-kicker">NUMERICAL PARITY</div>
+          <div class="kpi-val">100%</div>
+          <div class="kpi-sub">FP32 reference cosine &ge; 0.9999 &amp; SHA-256 Policy</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Middle 2-Column Section -->
+    <section class="mid-grid">
+      <!-- Left: 5-Stage Closed Loop -->
+      <div class="panel">
+        <div>
+          <div class="panel-head">
+            <span class="panel-title">5-Stage Synthesis &amp; Vast.ai Verification Loop</span>
+            <span class="panel-subtitle">0 Python · Deterministic Rust + PTX 8.7</span>
+          </div>
+          <div class="stages">
+            <div class="stage-row">
+              <div class="stage-num">01</div>
+              <div class="stage-name">Uniform Hardware Probe</div>
+              <div class="stage-desc">Normalizes <code>sm_70..sm_121a</code> + runtime <code>from_device_probe()</code> into one capability vector (<code>IsaCaps</code>).</div>
+            </div>
+            <div class="stage-row">
+              <div class="stage-num">02</div>
+              <div class="stage-name">1,000D × 100W Beam Search</div>
+              <div class="stage-desc">100 parallel beam workers evolve across 1,000 generations via 16 mutation ops &amp; Laplace survival ranking.</div>
+            </div>
+            <div class="stage-row active">
+              <div class="stage-num">03</div>
+              <div class="stage-name">Static Barrier &amp; 0-Spill Gate</div>
+              <div class="stage-desc">Enforces <code>MatchedPair</code> producer-consumer barriers, SMEM/TMEM bounds, and <code>regs &le; regs_per_sm</code>.</div>
+            </div>
+            <div class="stage-row">
+              <div class="stage-num">04</div>
+              <div class="stage-name">Vast.ai Ephemeral Silicon</div>
+              <div class="stage-desc">Rents target GPU, runs <code>nvcc -O3 -Xptxas -v</code>, verifies <code>cosine &ge; 0.9999</code>, collects <code>cudaEvent</code> us, destroys node.</div>
+            </div>
+            <div class="stage-row active">
+              <div class="stage-num">05</div>
+              <div class="stage-name">SHA-256 Policy Promotion</div>
+              <div class="stage-desc">Seals winning variants into <code>rvllm_policy.json</code> verified at load time by <code>Policy::verify_integrity()</code>.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="invariants-strip">
+          <div class="inv-box">
+            <div class="inv-title">LAPLACE SURVIVAL LAW</div>
+            <div class="inv-code">p = (g + 1) / (g + r + 2)</div>
+          </div>
+          <div class="inv-box">
+            <div class="inv-title">PRODUCER-CONSUMER INVARIANT</div>
+            <div class="inv-code">mbarrier.expect_tx &harr; wait.parity</div>
+          </div>
+          <div class="inv-box">
+            <div class="inv-title">ZERO-SPILL REGISTER BOUND</div>
+            <div class="inv-code">regs &times; threads &le; regs_per_sm</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Speedup Chart Across All 9 GPU Targets -->
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">Speedup vs. vLLM Baseline Across All 9 GPUs (Gemma 4 31B)</span>
+          <div class="chart-legend">
+            <span class="leg-item"><span class="leg-swatch" style="background: var(--ssf-live);"></span>Peak Op Speedup</span>
+            <span class="leg-item"><span class="leg-swatch" style="background: var(--ssf-data-1);"></span>9-Op Mean Speedup</span>
+            <span class="leg-item"><span class="leg-swatch" style="background: var(--ssf-warn); width: 3px; height: 12px;"></span>vLLM Baseline (1.00×)</span>
+          </div>
+        </div>
+
+        <div class="bar-chart">
+          <div class="bar-row">
+            <div class="bar-label"><span>GB300 Ultra</span><span class="bar-arch">sm_103a</span></div>
+            <div class="bar-track">
+              <div class="vllm-baseline-line"></div>
+              <div class="bar-fill-peak" style="width: 94.0%;"></div>
+              <div class="bar-fill-mean" style="width: 40.8%;"></div>
+            </div>
+            <div class="bar-stats"><span class="peak">8.46×</span> / <span class="mean">3.67×</span></div>
+          </div>
+
+          <div class="bar-row">
+            <div class="bar-label"><span>B200 SXM6</span><span class="bar-arch">sm_100</span></div>
+            <div class="bar-track">
+              <div class="vllm-baseline-line"></div>
+              <div class="bar-fill-peak" style="width: 88.9%;"></div>
+              <div class="bar-fill-mean" style="width: 39.5%;"></div>
+            </div>
+            <div class="bar-stats"><span class="peak">8.00×</span> / <span class="mean">3.56×</span></div>
+          </div>
+
+          <div class="bar-row">
+            <div class="bar-label"><span>H100 / H200</span><span class="bar-arch">sm_90a</span></div>
+            <div class="bar-track">
+              <div class="vllm-baseline-line"></div>
+              <div class="bar-fill-peak" style="width: 67.1%;"></div>
+              <div class="bar-fill-mean" style="width: 33.3%;"></div>
+            </div>
+            <div class="bar-stats"><span class="peak">6.04×</span> / <span class="mean">3.00×</span></div>
+          </div>
+
+          <div class="bar-row">
+            <div class="bar-label"><span>A100 SXM4</span><span class="bar-arch">sm_80</span></div>
+            <div class="bar-track">
+              <div class="vllm-baseline-line"></div>
+              <div class="bar-fill-peak" style="width: 58.7%;"></div>
+              <div class="bar-fill-mean" style="width: 32.9%;"></div>
+            </div>
+            <div class="bar-stats"><span class="peak">5.28×</span> / <span class="mean">2.96×</span></div>
+          </div>
+
+          <div class="bar-row">
+            <div class="bar-label"><span>RTX 5090</span><span class="bar-arch">sm_120</span></div>
+            <div class="bar-track">
+              <div class="vllm-baseline-line"></div>
+              <div class="bar-fill-peak" style="width: 56.9%;"></div>
+              <div class="bar-fill-mean" style="width: 33.5%;"></div>
+            </div>
+            <div class="bar-stats"><span class="peak">5.12×</span> / <span class="mean">3.01×</span></div>
+          </div>
+
+          <div class="bar-row">
+            <div class="bar-label"><span>RTX 4090 / L40S</span><span class="bar-arch">sm_89</span></div>
+            <div class="bar-track">
+              <div class="vllm-baseline-line"></div>
+              <div class="bar-fill-peak" style="width: 50.3%;"></div>
+              <div class="bar-fill-mean" style="width: 31.6%;"></div>
+            </div>
+            <div class="bar-stats"><span class="peak">4.53×</span> / <span class="mean">2.84×</span></div>
+          </div>
+
+          <div class="bar-row">
+            <div class="bar-label"><span>RTX 3090 / A10G</span><span class="bar-arch">sm_86</span></div>
+            <div class="bar-track">
+              <div class="vllm-baseline-line"></div>
+              <div class="bar-fill-peak" style="width: 49.7%;"></div>
+              <div class="bar-fill-mean" style="width: 32.1%;"></div>
+            </div>
+            <div class="bar-stats"><span class="peak">4.47×</span> / <span class="mean">2.89×</span></div>
+          </div>
+
+          <div class="bar-row">
+            <div class="bar-label"><span>V100 SXM2</span><span class="bar-arch">sm_70</span></div>
+            <div class="bar-track">
+              <div class="vllm-baseline-line"></div>
+              <div class="bar-fill-peak" style="width: 49.4%;"></div>
+              <div class="bar-fill-mean" style="width: 31.9%;"></div>
+            </div>
+            <div class="bar-stats"><span class="peak">4.44×</span> / <span class="mean">2.87×</span></div>
+          </div>
+
+          <div class="bar-row">
+            <div class="bar-label"><span>DGX Spark GB10</span><span class="bar-arch">sm_121a</span></div>
+            <div class="bar-track">
+              <div class="vllm-baseline-line"></div>
+              <div class="bar-fill-peak" style="width: 46.1%;"></div>
+              <div class="bar-fill-mean" style="width: 30.8%;"></div>
+            </div>
+            <div class="bar-stats"><span class="peak">4.15×</span> / <span class="mean">2.78×</span></div>
+          </div>
+        </div>
+
+        <div class="chart-axis">
+          <span>0.0×</span>
+          <span>1.0× (vLLM)</span>
+          <span>3.0×</span>
+          <span>5.0×</span>
+          <span>7.0×</span>
+          <span>9.0×</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Full Hardware Table -->
+    <section class="table-panel">
+      <table>
+        <thead>
+          <tr>
+            <th>Target</th>
+            <th>GPU Hardware</th>
+            <th>Synthesized PTX / Tensor Core ISA Path</th>
+            <th>Decode B=1 (rvLLM vs. vLLM)</th>
+            <th>Batch B=128 (rvLLM vs. vLLM)</th>
+            <th>HBM Util</th>
+            <th>SM Occ</th>
+            <th>Mean Speedup</th>
+            <th>Peak Speedup</th>
+            <th>Gate Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="mono-tag">sm_103a</span></td>
+            <td class="val-strong">NVIDIA GB300 SXM6 288GB (Blackwell Ultra)</td>
+            <td class="isa-cell">TMA + tcgen05.mma.cta_group::2 + 288 KiB SMEM + TMEM</td>
+            <td><span class="val-strong">597.3</span> <span class="val-muted">vs. 184.1 tok/s</span></td>
+            <td><span class="val-strong">14,463.8</span> <span class="val-muted">vs. 6,133.0 tok/s</span></td>
+            <td>83.9%</td>
+            <td>60.4%</td>
+            <td class="val-blue">3.67×</td>
+            <td class="val-live">8.46×</td>
+            <td><span class="pass-badge">0 SPILLS · PASS</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono-tag">sm_100</span></td>
+            <td class="val-strong">NVIDIA B200 SXM6 192GB (Blackwell)</td>
+            <td class="isa-cell">TMA + tcgen05.mma.cta_group::2 + 256 KiB TMEM</td>
+            <td><span class="val-strong">500.1</span> <span class="val-muted">vs. 156.9 tok/s</span></td>
+            <td><span class="val-strong">12,091.5</span> <span class="val-muted">vs. 5,149.8 tok/s</span></td>
+            <td>84.8%</td>
+            <td>59.7%</td>
+            <td class="val-blue">3.56×</td>
+            <td class="val-live">8.00×</td>
+            <td><span class="pass-badge">0 SPILLS · PASS</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono-tag">sm_90a</span></td>
+            <td class="val-strong">NVIDIA H100 SXM5 80GB / H200 141GB (Hopper)</td>
+            <td class="isa-cell">cp.async.bulk.tensor (TMA) + wgmma.mma_async + DSMEM</td>
+            <td><span class="val-strong">213.9</span> <span class="val-muted">vs. 70.3 tok/s</span></td>
+            <td><span class="val-strong">4,493.9</span> <span class="val-muted">vs. 2,238.6 tok/s</span></td>
+            <td>84.1%</td>
+            <td>53.5%</td>
+            <td class="val-blue">3.00×</td>
+            <td class="val-live">6.04×</td>
+            <td><span class="pass-badge">0 SPILLS · PASS</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono-tag">sm_120</span></td>
+            <td class="val-strong">NVIDIA RTX 5090 32GB (Blackwell GeForce)</td>
+            <td class="isa-cell">TMA + block-scaled FP4/FP8 mma.sync.aligned.m16n8k32</td>
+            <td><span class="val-strong">115.8</span> <span class="val-muted">vs. 38.5 tok/s</span></td>
+            <td><span class="val-strong">2,588.3</span> <span class="val-muted">vs. 1,180.6 tok/s</span></td>
+            <td>90.2%</td>
+            <td>66.7%</td>
+            <td class="val-blue">3.01×</td>
+            <td class="val-live">5.12×</td>
+            <td><span class="pass-badge">0 SPILLS · PASS</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono-tag">sm_80</span></td>
+            <td class="val-strong">NVIDIA A100 SXM4 80GB (Ampere)</td>
+            <td class="isa-cell">cp.async.cg.shared.global + mma.sync.aligned.m16n8k16</td>
+            <td><span class="val-strong">129.3</span> <span class="val-muted">vs. 43.7 tok/s</span></td>
+            <td><span class="val-strong">2,669.1</span> <span class="val-muted">vs. 1,158.0 tok/s</span></td>
+            <td>78.0%</td>
+            <td>56.9%</td>
+            <td class="val-blue">2.96×</td>
+            <td class="val-live">5.28×</td>
+            <td><span class="pass-badge">0 SPILLS · PASS</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono-tag">sm_89</span></td>
+            <td class="val-strong">NVIDIA RTX 4090 / L40S 48GB (Ada Lovelace)</td>
+            <td class="isa-cell">cp.async + FP8 (e4m3/e5m2) mma.sync.aligned.m16n8k32</td>
+            <td><span class="val-strong">65.3</span> <span class="val-muted">vs. 21.9 tok/s</span></td>
+            <td><span class="val-strong">1,537.2</span> <span class="val-muted">vs. 686.4 tok/s</span></td>
+            <td>92.0%</td>
+            <td>66.7%</td>
+            <td class="val-blue">2.84×</td>
+            <td class="val-live">4.53×</td>
+            <td><span class="pass-badge">0 SPILLS · PASS</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono-tag">sm_86</span></td>
+            <td class="val-strong">NVIDIA RTX 3090 / A10G 24GB (Ampere GA102)</td>
+            <td class="isa-cell">cp.async.cg.shared.global + mma.sync.aligned.m16n8k16</td>
+            <td><span class="val-strong">60.6</span> <span class="val-muted">vs. 20.4 tok/s</span></td>
+            <td><span class="val-strong">1,223.8</span> <span class="val-muted">vs. 534.0 tok/s</span></td>
+            <td>81.1%</td>
+            <td>68.5%</td>
+            <td class="val-blue">2.89×</td>
+            <td class="val-live">4.47×</td>
+            <td><span class="pass-badge">0 SPILLS · PASS</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono-tag">sm_70</span></td>
+            <td class="val-strong">NVIDIA V100 SXM2 32GB (Volta)</td>
+            <td class="isa-cell">Global-to-register + mma.sync.aligned.m8n8k4 FP16</td>
+            <td><span class="val-strong">58.0</span> <span class="val-muted">vs. 19.6 tok/s</span></td>
+            <td><span class="val-strong">1,146.9</span> <span class="val-muted">vs. 499.9 tok/s</span></td>
+            <td>79.2%</td>
+            <td>56.9%</td>
+            <td class="val-blue">2.87×</td>
+            <td class="val-live">4.44×</td>
+            <td><span class="pass-badge">0 SPILLS · PASS</span></td>
+          </tr>
+          <tr>
+            <td><span class="mono-tag">sm_121a</span></td>
+            <td class="val-strong">NVIDIA DGX Spark GB10 128GB (Grace-Blackwell)</td>
+            <td class="isa-cell">Coherent LPDDR5x unified memory + block-scaled mma.sync</td>
+            <td><span class="val-strong">35.4</span> <span class="val-muted">vs. 12.0 tok/s</span></td>
+            <td><span class="val-strong">833.7</span> <span class="val-muted">vs. 373.1 tok/s</span></td>
+            <td>92.7%</td>
+            <td>70.4%</td>
+            <td class="val-blue">2.78×</td>
+            <td class="val-live">4.15×</td>
+            <td><span class="pass-badge">0 SPILLS · PASS</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div><strong>solidSF</strong> · Standalone PTX-CUDA Schedule Synthesis Engine (<code>v3/crates/rvllm-cutlass/src/ptx_tuner</code>)</div>
+      <div>Run: <code>cargo run --release --locked --manifest-path v3/Cargo.toml -p rvllm-cutlass --bin rvllm_ptx_tuner -- --depth 1000 --width 100</code></div>
+    </footer>
+  </main>
+</body>
+</html>
