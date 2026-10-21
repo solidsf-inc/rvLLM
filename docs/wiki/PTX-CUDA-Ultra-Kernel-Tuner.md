@@ -1,6 +1,6 @@
-# Jesse PTX-CUDA Ultra Kernel Tuner (`1,000D x 100W`)
+# PTX-CUDA Ultra Kernel Tuner (`1,000D x 100W`)
 
-The **Jesse PTX-CUDA Ultra Kernel Tuner** (`v3/crates/rvllm-cutlass/src/ptx_tuner`) synthesizes hardware-optimal PTX 8.7 and CUDA C++ kernels across all NVIDIA GPU generations without relying on vLLM's Python runtime or static heuristic tables.
+The **rvLLM PTX-CUDA Ultra Kernel Tuner** (`v3/crates/rvllm-cutlass/src/ptx_tuner`) synthesizes hardware-optimal PTX 8.7 and CUDA C++ kernels across all NVIDIA GPU generations without relying on vLLM's Python runtime or static heuristic tables.
 
 ## 1. Search Topology (`1,000D x 100W`)
 

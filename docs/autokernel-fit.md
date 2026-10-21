@@ -14,7 +14,7 @@ tests and the raw receipt shows a repeatable improvement on named hardware.
 Reject results with warmup failures, hidden fallbacks, missing artifacts,
 different models, or unmatched source SHAs.
 
-## Jesse PTX-CUDA `1,000D x 100W` schedule synthesis
+## PTX-CUDA `1,000D x 100W` schedule synthesis
 
 For multi-architecture PTX schedule exploration (`sm_70` through `sm_121a`) and
 Vast.ai fleet benchmarking, run `rvllm_ptx_tuner` (`v3/crates/rvllm-cutlass/src/ptx_tuner`)

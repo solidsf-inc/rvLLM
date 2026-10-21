@@ -11,7 +11,7 @@ This file defines the architecture, verification gates, kernel-tuning workflows,
 | `v3/crates/rvllm-core` | Shared model types, tensor descriptors, and error definitions (`RvllmError`). |
 | `v3/crates/rvllm-mem` | Device HBM arena, pinned host buffers, streams, and CUDA context lifecycle. |
 | `v3/crates/rvllm-kernels` | PTX module loader, kernel manifest verification, and launch abstractions. |
-| `v3/crates/rvllm-cutlass` | CUTLASS/cuBLASLt FP8 dispatch, SHA-256 authenticated `Policy` table, and the **Jesse PTX-CUDA `1,000D x 100W` Ultra Kernel Tuner** (`ptx_tuner` + `rvllm_ptx_tuner` binary). |
+| `v3/crates/rvllm-cutlass` | CUTLASS/cuBLASLt FP8 dispatch, SHA-256 authenticated `Policy` table, and the **PTX-CUDA `1,000D x 100W` Ultra Kernel Tuner** (`ptx_tuner` + `rvllm_ptx_tuner` binary). |
 | `v3/crates/rvllm-attention` | Paged decode attention and FlashAttention-3 prefill dispatch. |
 | `v3/crates/rvllm-fused` | Fused RMSNorm, RoPE, GEGLU/SwiGLU, quantization, and host reference golden functions. |
 | `v3/crates/rvllm-metadata` | Device metadata tables and layout hashes. |
@@ -26,7 +26,7 @@ This file defines the architecture, verification gates, kernel-tuning workflows,
 | `scripts/remote_gpu_eval.sh` | Remote GPU evaluation harness executed on rented Vast.ai nodes. |
 | `docs/wiki/` | Structured wiki pages covering architecture, the `1,000D x 100W` PTX-CUDA tuner, Vast.ai fleet dispatch, and hardware support matrix. |
 
-## 2. Jesse PTX-CUDA Ultra Kernel Tuner (`1,000D x 100W`)
+## 2. PTX-CUDA Ultra Kernel Tuner (`1,000D x 100W`)
 
 `rvllm-cutlass::ptx_tuner` replaces static vLLM/PyTorch dispatch heuristics with an evolutionary schedule synthesis engine operating over a **`1,000D x 100W`** topology (`1,000` evolutionary generations $\times$ `100` parallel beam workers = `100,000` schedule evaluations per workload shape):
 

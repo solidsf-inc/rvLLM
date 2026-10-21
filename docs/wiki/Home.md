@@ -5,7 +5,7 @@ Welcome to the **rvLLM** documentation wiki. `rvLLM` is a native Rust inference 
 ## Navigation
 
 - **[Architecture Overview](../arch.md)** — Crate DAG (`v3/Cargo.toml`), memory hierarchy, loopback server surface, and runtime execution pipeline.
-- **[Jesse PTX-CUDA Ultra Kernel Tuner (`1,000D x 100W`)](PTX-CUDA-Ultra-Kernel-Tuner.md)** — Evolutionary schedule synthesis (`100,000` evaluations per workload shape), `MatchedPair` producer-consumer barrier verification, zero-spill register invariants, and SHA-256 `Policy` generation.
+- **[PTX-CUDA Ultra Kernel Tuner (`1,000D x 100W`)](PTX-CUDA-Ultra-Kernel-Tuner.md)** — Evolutionary schedule synthesis (`100,000` evaluations per workload shape), `MatchedPair` producer-consumer barrier verification, zero-spill register invariants, and SHA-256 `Policy` generation.
 - **[Vast.ai GPU Fleet Dispatch](Vast-AI-Fleet-Dispatch.md)** — Ephemeral multi-architecture GPU benchmarking (`scripts/vast_ptx_tuner.py` and `scripts/remote_gpu_eval.sh`), `ptxas -v` zero-spill validation, FP32 cosine parity (`>= 0.9999`), and teardown safety.
 - **[Hardware Support Matrix (`sm_70` to `sm_121a`)](Hardware-Support-Matrix.md)** — Uniform `HardwareDescriptor` and `IsaCaps` across Volta, Ampere, Ada, Hopper, and Blackwell (`B200`, `GB300`, `RTX 5090`, `DGX Spark GB10`), plus runtime `from_device_probe`.
 - **[Interactive Reports & Benchmarks](../bench.html)**:
