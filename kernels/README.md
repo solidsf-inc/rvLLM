@@ -60,7 +60,7 @@ CI runs `ci_compile_release_cuda.sh` in a digest-pinned CUDA 13 container for
 both SM90 and SM121. It compiles and links every release PTX/shared-library
 artifact without claiming that the CPU-only runner executes GPU kernels.
 
-## Jesse PTX-CUDA `1,000D x 100W` Ultra Kernel Tuner
+## PTX-CUDA `1,000D x 100W` Ultra Kernel Tuner
 
 For evolutionary PTX/CUDA schedule synthesis across `sm_70` through `sm_121a`
 and live Vast.ai GPU compilation/benchmarking (`ptxas -v` zero-spill check +

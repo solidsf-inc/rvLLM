@@ -23,7 +23,7 @@ The server binds loopback only. It implements health/status/metrics, model
 listing, text completions, and chat completions. Remote exposure requires an
 audited proxy with TLS and authentication.
 
-## Jesse PTX-CUDA `1,000D x 100W` Kernel Synthesis (`rvllm-cutlass::ptx_tuner`)
+## PTX-CUDA `1,000D x 100W` Kernel Synthesis (`rvllm-cutlass::ptx_tuner`)
 
 `rvllm-cutlass::ptx_tuner` (`v3/crates/rvllm-cutlass/src/ptx_tuner`) and the
 `rvllm_ptx_tuner` CLI binary synthesize PTX 8.7 + CUDA C++ schedules across a
